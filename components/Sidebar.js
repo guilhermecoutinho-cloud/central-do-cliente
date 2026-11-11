@@ -11,6 +11,7 @@ const LINKS = [
   { href: '/onboarding', nome: 'Onboarding', icone: 'check' },
   { href: '/encontros', nome: 'Encontros e presença', icone: 'calendario' },
   { href: '/assessment', nome: 'Assessment', icone: 'assessment' },
+  { href: '/cashback', nome: 'Cashback', icone: 'cashback' },
 ];
 
 export default function Sidebar({ usuario }) {

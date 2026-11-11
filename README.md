@@ -55,6 +55,13 @@ Na Vercel: **Project** → **Settings** → **Domains** → adicione, por exempl
 - `vercel.json` coloca o servidor do site em **São Paulo (gru1)**, perto do banco. O projeto do Supabase também precisa estar em **South America (São Paulo)**; se estiver em outra região, troque `gru1` pela região mais próxima dele.
 - Quem já tinha o banco criado antes de 11/11/2026: rode **uma vez** o arquivo `supabase/performance.sql` no SQL Editor (cria índices e deixa as regras de acesso mais leves). Quem for criar do zero, o `schema.sql` já inclui isso.
 
+## Cashback e gamificação
+
+- Quem já tinha o banco criado: rode **uma vez** o arquivo `supabase/cashback.sql` no SQL Editor. Quem for criar do zero, o `schema.sql` já inclui.
+- Na ficha do cliente, aba **Cashback**: dar cashback (indicação, renovação, presença, depoimento, desafio ou outro), registrar resgate, ver nível e conquistas.
+- No menu, **Cashback**: ranking dos clientes, total em aberto, distribuído e resgatado.
+- Valores sugeridos, níveis (Bronze, Prata, Ouro, Diamante) e conquistas ficam em `lib/cashback.js`.
+
 ## Primeiros passos dentro da central
 
 1. **Encontros** → cadastre o calendário de cada produto (MGA, Ambição, Mentoria, Imersão). É com essas datas que a central calcula o saldo de encontros de cada cliente.

@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { ETAPAS } from '@/lib/onboarding';
 import { texto } from '@/lib/util';
+import { fmtMoeda, lerValor } from '@/lib/cashback';
 
 function checar(error) {
   if (error) throw new Error(error.message);
@@ -337,6 +338,43 @@ export async function marcarRestantesComoFalta(formData) {
   }
   revalidatePath(`/encontros/${encontro_id}`);
   revalidatePath('/');
+}
+
+// ---------------------------------------------------------------- Cashback
+
+export async function lancarCashback(formData) {
+  const supabase = createClient();
+  const id = texto(formData, 'cliente_id');
+  const tipo = texto(formData, 'tipo') === 'resgate' ? 'resgate' : 'credito';
+  const valor = lerValor(formData.get('valor'));
+  if (!Number.isFinite(valor) || valor <= 0) throw new Error('Informe um valor maior que zero.');
+
+  if (tipo === 'resgate') {
+    const { data: s } = await supabase.from('cashback_saldos').select('saldo').eq('cliente_id', id).maybeSingle();
+    const saldo = Number(s?.saldo || 0);
+    if (valor > saldo) throw new Error(`O cliente só tem ${fmtMoeda(saldo)} de saldo para resgatar.`);
+  }
+
+  const { error } = await supabase.from('cashback_movimentos').insert({
+    cliente_id: id,
+    tipo,
+    valor,
+    categoria: tipo === 'resgate' ? 'Resgate' : texto(formData, 'categoria') || 'Outro',
+    motivo: texto(formData, 'motivo'),
+    autor: texto(formData, 'autor'),
+  });
+  checar(error);
+  revalidarCliente(id);
+  revalidatePath('/cashback');
+}
+
+export async function removerMovimentoCashback(formData) {
+  const supabase = createClient();
+  const id = texto(formData, 'cliente_id');
+  const { error } = await supabase.from('cashback_movimentos').delete().eq('id', texto(formData, 'movimento_id'));
+  checar(error);
+  revalidarCliente(id);
+  revalidatePath('/cashback');
 }
 
 // ---------------------------------------------------------------- Assessment
