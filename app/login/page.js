@@ -7,8 +7,8 @@ export default function Login({ searchParams }) {
   return (
     <div className="publico" style={{ alignItems: 'center' }}>
       <div className="caixa anim" style={{ maxWidth: 420 }}>
-        <img src="/logo-caup.png" alt="Capital Upgrade Campinas" className="logo" />
-        <div className="pilha-p">
+        <img src="/logo-caup.png" alt="Capital Upgrade Campinas" className="logo" style={{ display: 'block', margin: '0 auto' }} />
+        <div className="pilha-p" style={{ alignItems: 'center', textAlign: 'center' }}>
           <span className="muted">Central do Cliente</span>
           <h1 className="titulo-m">Entrar</h1>
         </div>
@@ -26,7 +26,7 @@ export default function Login({ searchParams }) {
           ) : null}
           <button type="submit" className="btn">Entrar</button>
         </form>
-        <span className="small muted">Acesso só para o time da Capital Upgrade. Peça seu usuário ao administrador.</span>
+        <span className="small muted" style={{ textAlign: 'center' }}>Acesso só para o time da Capital Upgrade. Peça seu usuário ao administrador.</span>
       </div>
     </div>
   );
