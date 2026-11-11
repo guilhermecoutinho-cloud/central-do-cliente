@@ -3,6 +3,12 @@ import './globals.css';
 
 const inter = Inter({ subsets: ['latin'], display: 'swap' });
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: '#07090a',
+};
+
 export const metadata = {
   title: 'Central do Cliente · Capital Upgrade',
   description: 'Central do Cliente da Capital Upgrade',

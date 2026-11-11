@@ -1,8 +1,9 @@
 import Link from 'next/link';
 import { ETAPAS, chave, contarPorEtapa, totalTarefas } from '@/lib/onboarding';
 import { origem } from '@/lib/origem';
-import { alternarTarefa, mudarEtapa } from '@/app/actions';
+import { mudarEtapa } from '@/app/actions';
 import CopiarTexto from '@/components/CopiarTexto';
+import TarefaCheck from '@/components/TarefaCheck';
 
 export default function AbaOnboarding({ c, feitas, searchParams }) {
   const atualCliente = Math.min(c.etapa_onboarding, ETAPAS.length - 1);
@@ -73,17 +74,7 @@ export default function AbaOnboarding({ c, feitas, searchParams }) {
                 {itens.map((item, i) => {
                   const k = chave(e, s, i);
                   const feito = feitas.has(k);
-                  return (
-                    <form key={k} action={alternarTarefa}>
-                      <input type="hidden" name="cliente_id" value={c.id} />
-                      <input type="hidden" name="chave" value={k} />
-                      <input type="hidden" name="feito" value={feito ? '0' : '1'} />
-                      <button type="submit" className={'tarefa' + (feito ? ' ok' : '')} aria-pressed={feito}>
-                        <span className={'check' + (feito ? ' ok' : '')} aria-hidden="true">{feito ? '✓' : ''}</span>
-                        <span className="txt">{item}</span>
-                      </button>
-                    </form>
-                  );
+                  return <TarefaCheck key={k} clienteId={c.id} chave={k} texto={item} feito={feito} />;
                 })}
               </section>
             );

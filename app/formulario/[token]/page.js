@@ -19,7 +19,7 @@ export default async function Formulario({ params, searchParams }) {
   return (
     <div className="publico">
       <div className="caixa anim">
-        <img src="/logo-caup.png" alt="Capital Upgrade Campinas" className="logo" />
+        <img src="/logo-caup.png" alt="Capital Upgrade Campinas" className="logo" width="180" height="50" />
         {!cliente ? (
           <div className="card">
             <h1 className="h2">Link inválido</h1>

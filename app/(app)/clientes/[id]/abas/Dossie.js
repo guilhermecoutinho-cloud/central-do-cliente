@@ -143,14 +143,14 @@ export default async function AbaDossie({ c, membros, searchParams }) {
                 <div className="vazio">Nenhum acesso registrado.</div>
               ) : (
                 <div className="tabela-box">
-                  <table className="tabela">
+                  <table className="tabela cartoes">
                     <thead><tr><th>Plataforma</th><th>Detalhe</th><th>Status</th><th aria-label="Ações"></th></tr></thead>
                     <tbody>
                       {acessos.map((a) => (
                         <tr key={a.id}>
-                          <td><span className={'pill t-' + corAvatar(a.plataforma)}>{a.plataforma}</span></td>
-                          <td style={{ color: 'var(--texto3)' }}>{a.detalhe || '—'}</td>
-                          <td>
+                          <td className="principal"><span className={'pill t-' + corAvatar(a.plataforma)}>{a.plataforma}</span></td>
+                          <td data-label="Detalhe" style={{ color: 'var(--texto3)' }}>{a.detalhe || '—'}</td>
+                          <td data-label="Status">
                             <form action={alternarAcesso}>
                               <input type="hidden" name="cliente_id" value={c.id} />
                               <input type="hidden" name="acesso_id" value={a.id} />

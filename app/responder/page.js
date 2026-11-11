@@ -13,7 +13,7 @@ export default async function Responder({ searchParams }) {
   return (
     <div className="publico">
       <div className="caixa anim">
-        <img src="/logo-caup.png" alt="Capital Upgrade Campinas" className="logo" />
+        <img src="/logo-caup.png" alt="Capital Upgrade Campinas" className="logo" width="180" height="50" />
         {ok ? (
           <div className="card">
             <h1 className="titulo-m">Obrigado!</h1>

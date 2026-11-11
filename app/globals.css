@@ -45,7 +45,10 @@ button, input, select, textarea { font-family: inherit; font-size: 14px; }
   padding: 28px 16px; display: flex; flex-direction: column; gap: 4px;
   position: sticky; top: 0; height: 100vh; overflow-y: auto;
 }
-.sidebar .logo { width: 172px; height: auto; margin: 0 10px 6px; }
+.sidebar-topo { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.sidebar-links { display: flex; flex-direction: column; gap: 4px; flex: 1 1 auto; }
+.menu-botao { display: none; }
+.sidebar .logo { display: block; width: 172px; height: auto; margin: 0 10px 6px; }
 .sidebar .sub { margin: 0 10px 24px; font-size: 12px; color: var(--muted); letter-spacing: .06em; }
 .sidebar .secao { padding: 18px 12px 6px; font-size: 11px; letter-spacing: .1em; color: var(--muted2); font-weight: 600; }
 .nav-a {
@@ -58,14 +61,55 @@ button, input, select, textarea { font-family: inherit; font-size: 14px; }
 .sidebar .rodape { margin-top: auto; padding: 14px; border-radius: 12px; border: 1px solid var(--borda); background: var(--card); display: flex; flex-direction: column; gap: 8px; }
 .conteudo { flex: 1 1 auto; min-width: 0; padding: 36px 44px 56px; display: flex; flex-direction: column; gap: 24px; }
 
+/* Celular e tablet: barra no topo com botão de menu */
 @media (max-width: 900px) {
   .app { flex-direction: column; }
-  .sidebar { position: static; height: auto; flex: none; flex-direction: row; flex-wrap: wrap; padding: 14px; gap: 4px; }
-  .sidebar .logo { width: 120px; margin: 0 8px 0 0; }
-  .sidebar .sub, .sidebar .secao, .sidebar .nav-off { display: none; }
-  .sidebar .rodape { margin: 0; flex-direction: row; align-items: center; padding: 8px 12px; }
-  .conteudo { padding: 22px 16px 40px; }
+  .sidebar {
+    position: sticky; top: 0; z-index: 20; height: auto; flex: none;
+    padding: 10px 16px; border-right: 0; border-bottom: 1px solid #18201b; overflow: visible;
+  }
+  .sidebar .logo { width: 128px; margin: 0; }
+  .menu-botao {
+    display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px;
+    border-radius: 12px; border: 1px solid var(--borda2); background: var(--card); color: var(--texto); cursor: pointer;
+  }
+  .sidebar-links { display: none; padding: 8px 0 6px; }
+  .sidebar.aberto .sidebar-links { display: flex; max-height: calc(100vh - 70px); overflow-y: auto; }
+  .sidebar .sub { display: none; }
+  .sidebar .secao { padding: 12px 12px 4px; }
+  .sidebar .rodape { margin-top: 10px; flex-direction: row; align-items: center; justify-content: space-between; }
+  .conteudo { padding: 20px 16px 40px; gap: 18px; }
+  .titulo { font-size: 28px; }
+  .titulo-m { font-size: 22px; }
+  .card { padding: 18px; }
+  .kpi .valor { font-size: 28px; }
+  /* 16px evita o zoom automático do iPhone ao tocar num campo */
+  .input, .campo input, .campo select, .campo textarea { font-size: 16px; }
 }
+
+/* Celular: tabelas viram cartões, sem rolar para o lado */
+@media (max-width: 700px) {
+  .tabela.cartoes thead { display: none; }
+  .tabela.cartoes, .tabela.cartoes tbody, .tabela.cartoes tr, .tabela.cartoes td { display: block; width: 100%; }
+  .tabela.cartoes tr { padding: 12px 0; border-bottom: 1px solid var(--borda); }
+  .tabela.cartoes tr:last-child { border-bottom: 0; }
+  .tabela.cartoes tr:hover td { background: none; }
+  .tabela.cartoes td { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 6px 0; border: 0; text-align: right; }
+  .tabela.cartoes td::before { content: attr(data-label); color: var(--muted2); font-size: 12px; text-align: left; flex: 0 0 auto; }
+  .tabela.cartoes td[data-label=""]::before, .tabela.cartoes td:not([data-label])::before { content: none; }
+  .tabela.cartoes td.principal { justify-content: flex-start; text-align: left; padding-bottom: 8px; }
+  .tabela.cartoes td.principal::before { content: none; }
+  .tabela-box { overflow-x: visible; }
+  .segmentos { width: 100%; }
+  .segmentos a { flex: 1 1 auto; justify-content: center; }
+  .topo > .linha { width: 100%; }
+  .topo > .linha .btn { flex: 1 1 auto; }
+}
+
+/* Carregamento */
+@keyframes brilho { 0% { background-position: -400px 0; } 100% { background-position: 400px 0; } }
+.esqueleto { border-radius: 10px; background: linear-gradient(90deg, var(--card) 0px, var(--card2) 200px, var(--card) 400px); background-size: 800px 100%; animation: brilho 1.4s linear infinite; }
+.carregando { opacity: .6; pointer-events: none; }
 
 /* ---------- Cabeçalhos ---------- */
 .topo { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px; }
@@ -86,9 +130,9 @@ button, input, select, textarea { font-family: inherit; font-size: 14px; }
 .colunas { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; }
 .col-principal { flex: 999 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 20px; }
 .col-lateral { flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
-.grid-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; }
-.grid-auto { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
-.grid-lado { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; align-items: start; }
+.grid-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(210px, 100%), 1fr)); gap: 16px; }
+.grid-auto { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 12px; }
+.grid-lado { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: 16px; align-items: start; }
 
 .kpi { background: var(--card); border: 1px solid var(--borda); border-radius: var(--raio); padding: 20px; display: flex; flex-direction: column; gap: 8px; transition: border-color .2s; }
 .kpi:hover { border-color: var(--borda-forte); }
@@ -134,7 +178,7 @@ button, input, select, textarea { font-family: inherit; font-size: 14px; }
 }
 .campo textarea { min-height: 90px; resize: vertical; }
 .input:focus, .campo input:focus, .campo select:focus, .campo textarea:focus { border-color: var(--verde); }
-.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 14px; }
 .form-grid .inteiro { grid-column: 1 / -1; }
 
 /* ---------- Abas e filtros ---------- */

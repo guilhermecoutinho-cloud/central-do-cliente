@@ -151,6 +151,20 @@ create table if not exists public.assessment_respostas (
 );
 
 -- ---------------------------------------------------------------------
+-- Índices
+-- ---------------------------------------------------------------------
+create index if not exists membros_cliente_idx            on public.membros (cliente_id);
+create index if not exists acessos_cliente_idx            on public.acessos (cliente_id);
+create index if not exists arquivos_cliente_idx           on public.arquivos (cliente_id);
+create index if not exists acompanhamentos_cliente_idx    on public.acompanhamentos (cliente_id, data desc);
+create index if not exists presencas_membro_idx           on public.presencas (membro_id);
+create index if not exists encontros_produto_data_idx     on public.encontros (produto, data);
+create index if not exists clientes_status_idx            on public.clientes (status);
+create index if not exists respostas_cliente_idx          on public.assessment_respostas (cliente_id);
+create index if not exists respostas_membro_idx           on public.assessment_respostas (membro_id);
+create index if not exists respostas_criado_idx           on public.assessment_respostas (criado_em desc);
+
+-- ---------------------------------------------------------------------
 -- Resumos de presença (usados no painel e na lista de encontros)
 -- ---------------------------------------------------------------------
 create or replace view public.presenca_cliente with (security_invoker = true) as
@@ -176,13 +190,13 @@ begin
   loop
     execute format('alter table public.%I enable row level security', t);
     execute format('drop policy if exists "equipe acessa" on public.%I', t);
-    execute format('create policy "equipe acessa" on public.%I for all to authenticated using (public.is_equipe()) with check (public.is_equipe())', t);
+    execute format('create policy "equipe acessa" on public.%I for all to authenticated using ((select public.is_equipe())) with check ((select public.is_equipe()))', t);
   end loop;
 end $$;
 
 alter table public.equipe enable row level security;
 drop policy if exists "equipe ve equipe" on public.equipe;
-create policy "equipe ve equipe" on public.equipe for select to authenticated using (public.is_equipe() or user_id = auth.uid());
+create policy "equipe ve equipe" on public.equipe for select to authenticated using ((select public.is_equipe()) or user_id = (select auth.uid()));
 
 -- Página pública do assessment pode ler as perguntas ativas
 drop policy if exists "publico le perguntas ativas" on public.assessment_perguntas;
@@ -266,5 +280,5 @@ on conflict (id) do nothing;
 drop policy if exists "equipe arquivos" on storage.objects;
 create policy "equipe arquivos" on storage.objects
   for all to authenticated
-  using (bucket_id = 'arquivos' and public.is_equipe())
-  with check (bucket_id = 'arquivos' and public.is_equipe());
+  using (bucket_id = 'arquivos' and (select public.is_equipe()))
+  with check (bucket_id = 'arquivos' and (select public.is_equipe()));

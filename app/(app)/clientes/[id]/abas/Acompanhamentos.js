@@ -13,18 +13,18 @@ export default function AbaAcompanhamentos({ c, acomps }) {
           <div className="vazio">Nenhum acompanhamento registrado.</div>
         ) : (
           <div className="tabela-box">
-            <table className="tabela">
+            <table className="tabela cartoes">
               <thead>
                 <tr><th>Data</th><th>Motivo</th><th>Como foi</th><th>O que foi proposto</th><th>Quem</th><th aria-label="Ações"></th></tr>
               </thead>
               <tbody>
                 {acomps.map((a) => (
                   <tr key={a.id}>
-                    <td className="muted" style={{ whiteSpace: 'nowrap' }}>{fmtData(a.data)}</td>
-                    <td style={{ fontWeight: 600 }}>{a.motivo}</td>
-                    <td style={{ color: 'var(--texto3)' }}>{a.como_foi || '—'}</td>
-                    <td style={{ color: 'var(--texto3)' }}>{a.proposto || '—'}</td>
-                    <td className="muted">{a.autor || '—'}</td>
+                    <td data-label="Data" className="muted" style={{ whiteSpace: 'nowrap' }}>{fmtData(a.data)}</td>
+                    <td data-label="Motivo" style={{ fontWeight: 600 }}>{a.motivo}</td>
+                    <td data-label="Como foi" style={{ color: 'var(--texto3)' }}>{a.como_foi || '—'}</td>
+                    <td data-label="Proposto" style={{ color: 'var(--texto3)' }}>{a.proposto || '—'}</td>
+                    <td data-label="Quem" className="muted">{a.autor || '—'}</td>
                     <td>
                       <form action={removerAcompanhamento}>
                         <input type="hidden" name="cliente_id" value={c.id} />

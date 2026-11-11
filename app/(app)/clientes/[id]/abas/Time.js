@@ -20,7 +20,7 @@ export default function AbaTime({ c, membros }) {
           <div className="vazio">Ninguém cadastrado ainda.</div>
         ) : (
           <div className="tabela-box">
-            <table className="tabela">
+            <table className="tabela cartoes">
               <thead>
                 <tr>
                   <th>Nome</th>
@@ -35,7 +35,7 @@ export default function AbaTime({ c, membros }) {
               <tbody>
                 {membros.map((m) => (
                   <tr key={m.id}>
-                    <td>
+                    <td className="principal">
                       <span className="linha" style={{ flexWrap: 'nowrap' }}>
                         <span className={'av t-' + corAvatar(m.id)} style={{ width: 32, height: 32 }}>{iniciais(m.nome)}</span>
                         <span className="pilha-p" style={{ gap: 2 }}>
@@ -44,11 +44,11 @@ export default function AbaTime({ c, membros }) {
                         </span>
                       </span>
                     </td>
-                    <td style={{ color: 'var(--texto2)' }}>{m.cargo || '—'}</td>
-                    <td className="muted">{m.telefone || '—'}</td>
-                    <td className="muted" style={{ wordBreak: 'break-all' }}>{m.email || '—'}</td>
-                    <td style={{ wordBreak: 'break-all', color: m.email_celular ? 'var(--muted)' : 'var(--amber)' }}>{m.email_celular || 'falta informar'}</td>
-                    <td>
+                    <td data-label="Cargo" style={{ color: 'var(--texto2)' }}>{m.cargo || '—'}</td>
+                    <td data-label="Telefone" className="muted">{m.telefone || '—'}</td>
+                    <td data-label="E-mail computador" className="muted" style={{ wordBreak: 'break-all' }}>{m.email || '—'}</td>
+                    <td data-label="E-mail celular" style={{ wordBreak: 'break-all', color: m.email_celular ? 'var(--muted)' : 'var(--amber)' }}>{m.email_celular || 'falta informar'}</td>
+                    <td data-label="Acesso">
                       <form action={alternarAcessoMembro}>
                         <input type="hidden" name="cliente_id" value={c.id} />
                         <input type="hidden" name="membro_id" value={m.id} />

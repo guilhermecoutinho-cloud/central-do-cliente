@@ -22,23 +22,24 @@ const ABAS = [
 export default async function FichaCliente({ params, searchParams }) {
   const aba = ABAS.some(([k]) => k === searchParams?.aba) ? searchParams.aba : 'geral';
   const supabase = createClient();
-  const { data: c, error } = await supabase.from('clientes').select('*').eq('id', params.id).maybeSingle();
+  const id = params.id;
+  // Tudo em paralelo: uma ida ao banco em vez de três em sequência.
+  const [{ data: c, error }, { data: membros }, { data: encontros }, { data: tarefas }, { data: acomps }, { data: presencaCliente }] =
+    await Promise.all([
+      supabase.from('clientes').select('*').eq('id', id).maybeSingle(),
+      supabase.from('membros').select('*').eq('cliente_id', id).order('criado_em'),
+      supabase.from('encontros').select('*').order('data'),
+      supabase.from('onboarding_tarefas').select('chave').eq('cliente_id', id),
+      supabase
+        .from('acompanhamentos')
+        .select('*')
+        .eq('cliente_id', id)
+        .order('data', { ascending: false })
+        .order('criado_em', { ascending: false }),
+      supabase.from('presenca_cliente').select('encontro_id, cliente_id, presente').eq('cliente_id', id),
+    ]);
   if (error) throw new Error(error.message);
   if (!c) notFound();
-
-  const [{ data: membros }, { data: encontros }, { data: tarefas }, { data: acomps }] = await Promise.all([
-    supabase.from('membros').select('*').eq('cliente_id', c.id).order('criado_em'),
-    supabase.from('encontros').select('*').eq('produto', c.produto).order('data'),
-    supabase.from('onboarding_tarefas').select('chave').eq('cliente_id', c.id),
-    supabase
-      .from('acompanhamentos')
-      .select('*')
-      .eq('cliente_id', c.id)
-      .order('data', { ascending: false })
-      .order('criado_em', { ascending: false }),
-  ]);
-
-  const { data: presencaCliente } = await supabase.from('presenca_cliente').select('encontro_id, cliente_id, presente').eq('cliente_id', c.id);
 
   const r = resumoEncontros(c, encontros || [], presencaCliente || []);
   const feitas = new Set((tarefas || []).map((t) => t.chave));

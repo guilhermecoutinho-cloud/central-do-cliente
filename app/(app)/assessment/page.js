@@ -14,16 +14,11 @@ export default async function Assessment({ searchParams }) {
   const [{ data: perguntas }, { data: respostas, error }, { data: clientes }] = await Promise.all([
     supabase.from('assessment_perguntas').select('*').order('ordem'),
     supabase.from('assessment_respostas').select('*').order('criado_em', { ascending: false }),
-    supabase.from('clientes').select('id, nome, empresa, produto').in('status', ['onboarding', 'ativo']),
+    supabase.from('clientes').select('id, nome, empresa, produto, membros(id, nome, cliente_id)').in('status', ['onboarding', 'ativo']),
   ]);
   if (error) throw new Error(error.message);
 
-  const idsClientes = (clientes || []).map((c) => c.id);
-  let membros = [];
-  if (idsClientes.length) {
-    const { data } = await supabase.from('membros').select('id, nome, cliente_id').in('cliente_id', idsClientes);
-    membros = data || [];
-  }
+  const membros = (clientes || []).flatMap((c) => c.membros || []);
   const clientePorId = Object.fromEntries((clientes || []).map((c) => [c.id, c]));
   const responderam = new Set((respostas || []).map((r) => r.membro_id).filter(Boolean));
   const pendentes = membros.filter((m) => !responderam.has(m.id));

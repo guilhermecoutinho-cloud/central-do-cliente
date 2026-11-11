@@ -1,27 +1,28 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { excluirEncontro, marcarPresenca, marcarRestantesComoFalta } from '@/app/actions';
+import { excluirEncontro, marcarRestantesComoFalta } from '@/app/actions';
+import BotoesPresenca from '@/components/BotoesPresenca';
 import { COR_PRODUTO, corAvatar, fmtDataHora, iniciais } from '@/lib/util';
 
 export default async function Chamada({ params }) {
   const supabase = createClient();
-  const { data: e } = await supabase.from('encontros').select('*').eq('id', params.id).maybeSingle();
+  const [{ data: e }, { data: presencas }] = await Promise.all([
+    supabase.from('encontros').select('*').eq('id', params.id).maybeSingle(),
+    supabase.from('presencas').select('membro_id, presente').eq('encontro_id', params.id),
+  ]);
   if (!e) notFound();
 
+  // Clientes do produto já com o time de cada um, numa consulta só.
   const { data: clientes } = await supabase
     .from('clientes')
-    .select('id, nome, empresa')
+    .select('id, nome, empresa, membros(id, nome, cargo, cliente_id)')
     .eq('produto', e.produto)
     .in('status', ['onboarding', 'ativo'])
     .order('empresa');
-  const idsClientes = (clientes || []).map((c) => c.id);
-  let membros = [];
-  if (idsClientes.length) {
-    const { data } = await supabase.from('membros').select('id, nome, cargo, cliente_id').in('cliente_id', idsClientes).order('nome');
-    membros = data || [];
-  }
-  const { data: presencas } = await supabase.from('presencas').select('membro_id, presente').eq('encontro_id', e.id);
+  const membros = (clientes || [])
+    .flatMap((c) => c.membros || [])
+    .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
   const marca = {};
   (presencas || []).forEach((p) => (marca[p.membro_id] = p.presente));
 
@@ -83,27 +84,7 @@ export default async function Chamada({ params }) {
                             <span className="small muted">{m.cargo || ''}</span>
                           </span>
                         </span>
-                        <span className="linha" style={{ gap: 6 }}>
-                          <form action={marcarPresenca}>
-                            <input type="hidden" name="encontro_id" value={e.id} />
-                            <input type="hidden" name="membro_id" value={m.id} />
-                            <input type="hidden" name="presente" value={v === true ? 'limpar' : '1'} />
-                            <button type="submit" className={'btn btn-p ' + (v === true ? '' : 'btn-sec')} aria-pressed={v === true}>Presente</button>
-                          </form>
-                          <form action={marcarPresenca}>
-                            <input type="hidden" name="encontro_id" value={e.id} />
-                            <input type="hidden" name="membro_id" value={m.id} />
-                            <input type="hidden" name="presente" value={v === false ? 'limpar' : '0'} />
-                            <button
-                              type="submit"
-                              className="btn btn-p btn-sec"
-                              aria-pressed={v === false}
-                              style={v === false ? { background: 'var(--amber)', color: 'var(--verde-escuro)', borderColor: 'var(--amber)' } : {}}
-                            >
-                              Faltou
-                            </button>
-                          </form>
-                        </span>
+                        <BotoesPresenca encontroId={e.id} membroId={m.id} valor={v === undefined ? null : v} />
                       </div>
                     );
                   })}

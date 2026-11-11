@@ -9,7 +9,11 @@ export default async function Painel({ searchParams }) {
   const filtro = searchParams?.ultimo || 'todos';
   const supabase = createClient();
   const [{ data: clientes, error }, { count: semAcessoTotal }, { data: encontros }, { data: presencaCliente }, { data: porEncontro }] = await Promise.all([
-    supabase.from('clientes').select('*').neq('status', 'encerrado').order('criado_em', { ascending: false }),
+    supabase
+      .from('clientes')
+      .select('id, nome, empresa, produto, status, etapa_onboarding, responsavel, data_inicio, encontros_contratados, criado_em')
+      .neq('status', 'encerrado')
+      .order('criado_em', { ascending: false }),
     supabase.from('membros').select('id', { count: 'exact', head: true }).eq('acesso_liberado', false),
     supabase.from('encontros').select('*').order('data'),
     supabase.from('presenca_cliente').select('encontro_id, cliente_id, presente'),
@@ -114,7 +118,7 @@ export default async function Painel({ searchParams }) {
           </div>
         ) : (
           <div className="tabela-box">
-            <table className="tabela">
+            <table className="tabela cartoes">
               <thead>
                 <tr>
                   <th>Cliente</th>
@@ -131,7 +135,7 @@ export default async function Painel({ searchParams }) {
                   const etapa = c.status === 'onboarding' ? ETAPAS[c.etapa_onboarding]?.nome || 'Onboarding' : 'Encontros';
                   return (
                     <tr key={c.id}>
-                      <td>
+                      <td className="principal">
                         <Link href={`/clientes/${c.id}`} className="linha" style={{ color: 'var(--texto)', flexWrap: 'nowrap' }}>
                           <span className={'av t-' + corAvatar(c.id)}>{iniciais(c.nome)}</span>
                           <span className="pilha-p" style={{ gap: 2 }}>
@@ -140,10 +144,10 @@ export default async function Painel({ searchParams }) {
                           </span>
                         </Link>
                       </td>
-                      <td><span className={'pill t-' + COR_PRODUTO[c.produto]}>{c.produto}</span></td>
-                      <td style={{ color: 'var(--texto2)' }}>{etapa}</td>
-                      <td className="muted">{c.responsavel || '—'}</td>
-                      <td style={{ minWidth: 130 }}>
+                      <td data-label="Produto"><span className={'pill t-' + COR_PRODUTO[c.produto]}>{c.produto}</span></td>
+                      <td data-label="Etapa" style={{ color: 'var(--texto2)' }}>{etapa}</td>
+                      <td data-label="Responsável" className="muted">{c.responsavel || '—'}</td>
+                      <td data-label="Encontros" style={{ minWidth: 130 }}>
                         <div className="pilha-p">
                           <span style={{ fontSize: 13 }}>
                             {r.usados} de {r.contratados} · saldo {r.saldo}
@@ -153,7 +157,7 @@ export default async function Painel({ searchParams }) {
                           </div>
                         </div>
                       </td>
-                      <td>
+                      <td data-label="Último encontro">
                         <span className={'pill ' + (r.ultimoTipo === 'ok' ? 't-green' : r.ultimoTipo === 'falta' ? 't-amber' : 't-gray')}>{r.ultimo}</span>
                       </td>
                     </tr>

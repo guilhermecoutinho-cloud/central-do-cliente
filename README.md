@@ -50,6 +50,11 @@ Na Vercel: **Project** → **Settings** → **Domains** → adicione, por exempl
 
 ---
 
+## Performance
+
+- `vercel.json` coloca o servidor do site em **São Paulo (gru1)**, perto do banco. O projeto do Supabase também precisa estar em **South America (São Paulo)**; se estiver em outra região, troque `gru1` pela região mais próxima dele.
+- Quem já tinha o banco criado antes de 11/11/2026: rode **uma vez** o arquivo `supabase/performance.sql` no SQL Editor (cria índices e deixa as regras de acesso mais leves). Quem for criar do zero, o `schema.sql` já inclui isso.
+
 ## Primeiros passos dentro da central
 
 1. **Encontros** → cadastre o calendário de cada produto (MGA, Ambição, Mentoria, Imersão). É com essas datas que a central calcula o saldo de encontros de cada cliente.

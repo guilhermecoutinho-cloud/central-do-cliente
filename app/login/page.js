@@ -7,7 +7,7 @@ export default function Login({ searchParams }) {
   return (
     <div className="publico" style={{ alignItems: 'center' }}>
       <div className="caixa anim" style={{ maxWidth: 420 }}>
-        <img src="/logo-caup.png" alt="Capital Upgrade Campinas" className="logo" style={{ display: 'block', margin: '0 auto' }} />
+        <img src="/logo-caup.png" alt="Capital Upgrade Campinas" className="logo" width="180" height="50" style={{ display: 'block', margin: '0 auto' }} />
         <div className="pilha-p" style={{ alignItems: 'center', textAlign: 'center' }}>
           <span className="muted">Central do Cliente</span>
           <h1 className="titulo-m">Entrar</h1>
