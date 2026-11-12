@@ -5,6 +5,7 @@ import { SETORES } from '@/lib/setores';
 import { atrasada, hojeISO } from '@/lib/tarefas';
 import { fmtDataHora } from '@/lib/util';
 import AcessoMatriz from '@/components/AcessoMatriz';
+import Icone from '@/components/Icone';
 
 function saudacao() {
   const h = Number(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo', hour: 'numeric', hour12: false }));
@@ -46,20 +47,24 @@ export default async function Inicio() {
       </div>
 
       <div className="grid-kpi anim anim-1">
-        <Link href="/minhas-tarefas" className="kpi" style={{ color: 'var(--texto)' }}>
+        <Link href="/minhas-tarefas" className="kpi tom-blue" style={{ color: 'var(--texto)' }}>
+          <span className="icone"><Icone nome="check" tamanho={20} /></span>
           <span className="muted">Minhas tarefas abertas</span>
           <span className="valor">{minhas.length}</span>
         </Link>
-        <Link href="/minhas-tarefas" className="kpi" style={{ color: 'var(--texto)', ...(minhasAtrasadas ? { background: 'rgba(240,134,110,0.08)', borderColor: 'rgba(240,134,110,0.25)' } : {}) }}>
+        <Link href="/minhas-tarefas" className="kpi tom-coral" style={{ color: 'var(--texto)' }}>
+          <span className="icone"><Icone nome="relogio" tamanho={20} /></span>
           <span className="muted">Atrasadas</span>
-          <span className="valor" style={{ color: minhasAtrasadas ? 'var(--coral)' : 'var(--texto)' }}>{minhasAtrasadas}</span>
+          <span className={'valor' + (minhasAtrasadas ? ' cor' : '')}>{minhasAtrasadas}</span>
         </Link>
-        <Link href="/minhas-tarefas" className="kpi" style={{ color: 'var(--texto)' }}>
+        <Link href="/minhas-tarefas" className="kpi tom-amber" style={{ color: 'var(--texto)' }}>
+          <span className="icone"><Icone nome="calendario" tamanho={20} /></span>
           <span className="muted">Vencem hoje</span>
           <span className="valor">{minhasHoje}</span>
         </Link>
         {temSucesso ? (
-          <Link href="/encontros" className="kpi" style={{ color: 'var(--texto)' }}>
+          <Link href="/encontros" className="kpi tom-violet" style={{ color: 'var(--texto)' }}>
+            <span className="icone"><Icone nome="pessoas" tamanho={20} /></span>
             <span className="muted">Próximo encontro</span>
             <span className="valor" style={{ fontSize: 22 }}>{proximo ? fmtDataHora(proximo.data) : 'Sem data'}</span>
             <span className="small muted">{proximo ? `${proximo.produto} · ${proximo.titulo}` : 'Cadastre em Encontros'}</span>
@@ -94,7 +99,7 @@ export default async function Inicio() {
               </>
             );
             return tem ? (
-              <Link key={s.slug} href={href} className="card" style={{ color: 'var(--texto)', gap: 10 }}>{conteudo}</Link>
+              <Link key={s.slug} href={href} className={'card faixa tom-' + s.cor} style={{ color: 'var(--texto)', gap: 10 }}>{conteudo}</Link>
             ) : (
               <div key={s.slug} className="card" style={{ gap: 10, opacity: 0.55 }}>{conteudo}</div>
             );

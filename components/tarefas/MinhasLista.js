@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { atualizarTarefa } from '@/app/actions-tarefas';
 import { atrasada, corStatus, fmtPrazo, separarPorPrazo } from '@/lib/tarefas';
 import { SETORES } from '@/lib/setores';
+import Icone from '@/components/Icone';
 
 const COR_SETOR = Object.fromEntries(SETORES.map((s) => [s.slug, s]));
 
@@ -36,19 +37,20 @@ export default function MinhasLista({ tarefas: iniciais, hoje }) {
 
   const abertas = tarefas.filter((t) => t.status !== 'Feito');
   const kpis = [
-    ['Abertas', abertas.length, 'var(--texto)'],
-    ['Atrasadas', abertas.filter((t) => atrasada(t, hoje)).length, 'var(--coral)'],
-    ['Vencem hoje', abertas.filter((t) => t.prazo === hoje).length, 'var(--amber)'],
-    ['Concluídas', concluidas.length, 'var(--verde)'],
+    ['Abertas', abertas.length, 'blue', 'check'],
+    ['Atrasadas', abertas.filter((t) => atrasada(t, hoje)).length, 'coral', 'relogio'],
+    ['Vencem hoje', abertas.filter((t) => t.prazo === hoje).length, 'amber', 'calendario'],
+    ['Concluídas', concluidas.length, 'green', 'trofeu'],
   ];
 
   return (
     <>
       <div className="grid-kpi">
-        {kpis.map(([nome, n, cor]) => (
-          <div key={nome} className="kpi">
+        {kpis.map(([nome, n, cor, icone]) => (
+          <div key={nome} className={'kpi tom-' + cor}>
+            <span className="icone"><Icone nome={icone} tamanho={20} /></span>
             <span className="muted">{nome}</span>
-            <span className="valor" style={{ color: cor }}>{n}</span>
+            <span className={'valor' + (n && cor !== 'blue' ? ' cor' : '')}>{n}</span>
           </div>
         ))}
       </div>
@@ -67,7 +69,7 @@ export default function MinhasLista({ tarefas: iniciais, hoje }) {
               const s = COR_SETOR[t.setor];
               const feito = t.status === 'Feito';
               return (
-                <div key={t.id} className="card-2 linha" style={{ gap: 12, padding: '10px 14px' }}>
+                <div key={t.id} className={'card-2 linha' + (s ? ' faixa tom-' + s.cor : '')} style={{ gap: 12, padding: '10px 14px 10px 17px' }}>
                   <button
                     type="button"
                     className={'check' + (feito ? ' ok' : '')}

@@ -29,17 +29,17 @@ export default async function AbaCashback({ c, r }) {
     <div className="colunas">
       <div className="col-principal">
         <div className="grid-kpi">
-          <div className="kpi">
+          <div className="kpi tom-green">
             <span className="muted">Saldo disponível</span>
             <span className="valor" style={{ color: 'var(--verde)' }}>{fmtMoeda(s.saldo)}</span>
             <span className="small muted">pode usar quando quiser</span>
           </div>
-          <div className="kpi">
+          <div className="kpi tom-blue">
             <span className="muted">Total ganho</span>
             <span className="valor">{fmtMoeda(s.total_ganho)}</span>
             <span className="small muted">desde a entrada</span>
           </div>
-          <div className="kpi">
+          <div className="kpi tom-amber">
             <span className="muted">Já resgatou</span>
             <span className="valor">{fmtMoeda(s.total_resgatado)}</span>
           </div>

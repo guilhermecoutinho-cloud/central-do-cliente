@@ -229,7 +229,7 @@ export default function Quadro({ setor, grupos, tarefas: iniciais_, equipe, hoje
     <>
       <div className="topo">
         <div className="pilha-p">
-          <span className="eyebrow">{setor.nome} · Tarefas</span>
+          <span className={'selo tom-' + (setor.cor || 'green')}><span className="sigla">{setor.sigla}</span>{setor.nome}</span>
           <h1 className="titulo">Quadro de {setor.nome}</h1>
           <span className="small" style={{ color: 'var(--texto3)' }}>
             {abertas} {abertas === 1 ? 'tarefa aberta' : 'tarefas abertas'} · {qtdAtrasadas} {qtdAtrasadas === 1 ? 'atrasada' : 'atrasadas'}
@@ -296,7 +296,7 @@ export default function Quadro({ setor, grupos, tarefas: iniciais_, equipe, hoje
             const cor = CORES_GRUPO[g.cor] || CORES_GRUPO.green;
             const total = itens.length || 1;
             return (
-              <section key={g.id} className="q-grupo">
+              <section key={g.id} className="q-grupo" style={{ '--g': cor }}>
                 <div className="q-grupo-topo">
                   {renomeando === g.id ? (
                     <input

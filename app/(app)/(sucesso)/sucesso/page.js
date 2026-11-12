@@ -61,7 +61,7 @@ export default async function Painel({ searchParams }) {
     <>
       <div className="topo anim">
         <div>
-          <span className="eyebrow">Sucesso do Cliente · todos os clientes</span>
+          <span className="selo tom-violet"><span className="sigla">SC</span>Sucesso do Cliente</span>
           <h1 className="titulo">Painel do Sucesso do Cliente</h1>
         </div>
         <div className="linha">
@@ -71,24 +71,24 @@ export default async function Painel({ searchParams }) {
       </div>
 
       <div className="grid-kpi">
-        <div className="kpi anim anim-1">
-          <span className="icone t-blue"><Icone nome="pessoas" tamanho={20} /></span>
+        <div className="kpi tom-blue anim anim-1">
+          <span className="icone"><Icone nome="pessoas" tamanho={20} /></span>
           <span className="muted">Clientes ativos</span>
           <span className="valor">{ativos}</span>
         </div>
-        <div className="kpi anim anim-2">
-          <span className="icone t-violet"><Icone nome="check" tamanho={20} /></span>
+        <div className="kpi tom-violet anim anim-2">
+          <span className="icone"><Icone nome="check" tamanho={20} /></span>
           <span className="muted">Em onboarding</span>
           <span className="valor">{emOnboarding}</span>
         </div>
-        <div className="kpi anim anim-3">
-          <span className="icone t-amber"><Icone nome="calendario" tamanho={20} /></span>
+        <div className="kpi tom-amber anim anim-3">
+          <span className="icone"><Icone nome="calendario" tamanho={20} /></span>
           <span className="muted">Próximo encontro</span>
           <span className="valor" style={{ fontSize: proximo ? 24 : 34 }}>{proximo ? fmtDataHora(proximo.data) : '—'}</span>
           <span className="small muted">{proximo ? `${proximo.produto} · ${proximo.titulo}` : 'Nenhum agendado'}</span>
         </div>
-        <div className="kpi anim anim-4">
-          <span className="icone t-green"><Icone nome="presenca" tamanho={20} /></span>
+        <div className="kpi tom-green anim anim-4">
+          <span className="icone"><Icone nome="presenca" tamanho={20} /></span>
           <span className="muted">Presença no último encontro</span>
           <span className="valor" style={{ color: 'var(--verde)' }}>{presencaPct === null ? '—' : presencaPct + '%'}</span>
           {presencaPct !== null ? (

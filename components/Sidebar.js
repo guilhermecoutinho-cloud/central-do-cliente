@@ -77,12 +77,12 @@ export default function Sidebar({ nome, admin, setores, atrasadas }) {
           const href = s.slug === 'sucesso' ? '/sucesso' : `/setor/${s.slug}`;
           return (
             <div key={s.slug} className="pilha-p" style={{ gap: 2 }}>
-              <Link href={href} className={'nav-a' + (ativo ? ' ativo' : '')}>
+              <Link href={href} className={'nav-a tom-' + s.cor + (ativo ? ' ativo' : '')}>
                 <span className={'sigla t-' + s.cor}>{s.sigla}</span>
                 {s.nome}
               </Link>
               {ativo ? (
-                <div className="subnav">
+                <div className={'subnav tom-' + s.cor}>
                   {s.slug === 'sucesso' ? (
                     NAV_SUCESSO.map((n) => {
                       const sel = path === n.href || (n.href !== '/sucesso' && path.startsWith(n.href + '/')) || (n.href === '/sucesso' && path.startsWith('/clientes/') && path !== '/clientes/novo');

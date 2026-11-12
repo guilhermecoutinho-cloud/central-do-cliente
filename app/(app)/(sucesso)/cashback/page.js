@@ -47,19 +47,19 @@ export default async function Cashback({ searchParams }) {
       </div>
 
       <div className="grid-kpi">
-        <div className="kpi anim anim-1">
-          <span className="icone t-green"><Icone nome="cashback" tamanho={20} /></span>
+        <div className="kpi tom-green anim anim-1">
+          <span className="icone"><Icone nome="cashback" tamanho={20} /></span>
           <span className="muted">Saldo em aberto</span>
           <span className="valor" style={{ color: 'var(--verde)' }}>{fmtMoeda(emAberto)}</span>
           <span className="small muted">que os clientes ainda podem usar</span>
         </div>
-        <div className="kpi anim anim-2">
-          <span className="icone t-blue"><Icone nome="trofeu" tamanho={20} /></span>
+        <div className="kpi tom-blue anim anim-2">
+          <span className="icone"><Icone nome="trofeu" tamanho={20} /></span>
           <span className="muted">Total distribuído</span>
           <span className="valor">{fmtMoeda(distribuido)}</span>
         </div>
-        <div className="kpi anim anim-3">
-          <span className="icone t-amber"><Icone nome="check" tamanho={20} /></span>
+        <div className="kpi tom-amber anim anim-3">
+          <span className="icone"><Icone nome="check" tamanho={20} /></span>
           <span className="muted">Total resgatado</span>
           <span className="valor">{fmtMoeda(resgatado)}</span>
         </div>

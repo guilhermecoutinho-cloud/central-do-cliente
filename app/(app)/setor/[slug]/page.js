@@ -46,7 +46,7 @@ export default async function QuadroSetor({ params, searchParams }) {
   return (
     <Quadro
       key={setor.slug}
-      setor={{ slug: setor.slug, nome: setor.nome }}
+      setor={{ slug: setor.slug, nome: setor.nome, sigla: setor.sigla, cor: setor.cor }}
       grupos={grupos || []}
       tarefas={lista}
       equipe={equipe || []}
