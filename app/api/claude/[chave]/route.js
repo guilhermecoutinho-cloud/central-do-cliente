@@ -115,11 +115,20 @@ function criarDb() {
   };
 }
 
+// Quando falta a chave de serviço, o conector ainda conecta e lista as ferramentas;
+// só ao usar uma delas aparece o aviso do que falta.
+function dbSemChave() {
+  return new Proxy({}, {
+    get() {
+      return async () => {
+        throw new Error('Falta a variável SUPABASE_SERVICE_ROLE_KEY na Vercel (Settings → Environment Variables, depois Redeploy).');
+      };
+    },
+  });
+}
+
 export async function POST(request, { params }) {
   if (!chaveOk(params.chave)) return json({ erro: 'Não encontrado' }, 404);
-  if (!SERVICE) {
-    return json({ jsonrpc: '2.0', id: null, error: { code: -32000, message: 'Falta a variável SUPABASE_SERVICE_ROLE_KEY na Vercel.' } }, 500);
-  }
 
   let corpo;
   try {
@@ -128,15 +137,21 @@ export async function POST(request, { params }) {
     return json({ jsonrpc: '2.0', id: null, error: { code: -32700, message: 'JSON inválido' } }, 400);
   }
 
-  const base = new URL(request.url).origin;
-  const db = criarDb();
+  try {
+    const base = new URL(request.url).origin;
+    const db = SERVICE ? criarDb() : dbSemChave();
 
-  if (Array.isArray(corpo)) {
-    const respostas = (await Promise.all(corpo.map((m) => processar(m, db, base)))).filter(Boolean);
-    return respostas.length ? json(respostas) : new Response(null, { status: 202 });
+    if (Array.isArray(corpo)) {
+      const respostas = (await Promise.all(corpo.map((m) => processar(m, db, base)))).filter(Boolean);
+      return respostas.length ? json(respostas) : new Response(null, { status: 202 });
+    }
+    const r = await processar(corpo, db, base);
+    return r ? json(r) : new Response(null, { status: 202 });
+  } catch (e) {
+    console.error('Conector Claude falhou:', e);
+    const id = Array.isArray(corpo) ? null : corpo?.id ?? null;
+    return json({ jsonrpc: '2.0', id, error: { code: -32603, message: 'Erro interno: ' + (e?.message || 'desconhecido') } });
   }
-  const r = await processar(corpo, db, base);
-  return r ? json(r) : new Response(null, { status: 202 });
 }
 
 // Este conector não abre fluxo contínuo (SSE): responde só por POST.

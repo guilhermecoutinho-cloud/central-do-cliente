@@ -1,4 +1,6 @@
 import { headers } from 'next/headers';
+import { createClient } from '@supabase/supabase-js';
+import { SUPABASE_URL } from '@/lib/supabase/config';
 import { getPerfil } from '@/lib/perfil';
 import CopiarTexto from '@/components/CopiarTexto';
 import SemAcesso from '@/components/SemAcesso';
@@ -14,7 +16,18 @@ export default async function ConectarClaude() {
   const host = h.get('x-forwarded-host') || h.get('host');
   const proto = h.get('x-forwarded-proto') || 'https';
   const url = `${proto}://${host}/api/claude/${chave}`;
-  const pronto = chave.length >= 24 && temServico;
+  // Testa de verdade se a chave de serviço consegue ler o banco
+  let testeBanco = null;
+  if (temServico) {
+    try {
+      const sb = createClient(SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY.trim(), { auth: { persistSession: false, autoRefreshToken: false } });
+      const { count, error } = await sb.from('tarefas').select('id', { count: 'exact', head: true });
+      testeBanco = error ? { ok: false, msg: error.message } : { ok: true, msg: `${count ?? 0} tarefas lidas` };
+    } catch (e) {
+      testeBanco = { ok: false, msg: e?.message || 'erro desconhecido' };
+    }
+  }
+  const pronto = chave.length >= 24 && temServico && testeBanco?.ok;
 
   return (
     <>
@@ -45,6 +58,11 @@ export default async function ConectarClaude() {
               <span className={'pill ' + (temServico ? 't-green' : 't-coral')}>{temServico ? 'Configurada' : 'Faltando'}</span>
             </div>
           </div>
+          {testeBanco ? (
+            <div className={'aviso ' + (testeBanco.ok ? 't-green' : 't-coral')}>
+              Teste do banco com a chave de serviço: {testeBanco.ok ? 'funcionando' : 'falhou'} ({testeBanco.msg})
+            </div>
+          ) : null}
           <span className="small muted">
             A service role key fica no Supabase em Project Settings → API Keys (secret / service_role). Ela nunca vai para o navegador.
           </span>
