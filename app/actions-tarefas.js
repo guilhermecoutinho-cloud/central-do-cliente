@@ -18,6 +18,7 @@ function limpar(t, max = 500) {
 
 function revalidarSetor(setor, tarefaId) {
   revalidatePath(`/setor/${setor}`);
+  revalidatePath(`/setor/${setor}/painel`);
   revalidatePath('/minhas-tarefas');
   revalidatePath('/');
   if (tarefaId) revalidatePath(`/tarefas/${tarefaId}`);

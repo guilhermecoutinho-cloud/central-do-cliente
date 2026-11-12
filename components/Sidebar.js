@@ -74,7 +74,7 @@ export default function Sidebar({ nome, admin, setores, atrasadas }) {
               </span>
             );
           }
-          const href = s.slug === 'sucesso' ? '/sucesso' : `/setor/${s.slug}`;
+          const href = s.slug === 'sucesso' ? '/sucesso' : `/setor/${s.slug}/painel`;
           return (
             <div key={s.slug} className="pilha-p" style={{ gap: 2 }}>
               <Link href={href} className={'nav-a tom-' + s.cor + (ativo ? ' ativo' : '')}>
@@ -94,8 +94,8 @@ export default function Sidebar({ nome, admin, setores, atrasadas }) {
                     })
                   ) : (
                     <>
-                      <Link href={href} className="ativo">Tarefas</Link>
-                      <span className="em-breve">Painel (em breve)</span>
+                      <Link href={href} className={path.endsWith('/painel') ? 'ativo' : ''}>Painel</Link>
+                      <Link href={`/setor/${s.slug}`} className={path.endsWith('/painel') ? '' : 'ativo'}>Tarefas</Link>
                     </>
                   )}
                 </div>

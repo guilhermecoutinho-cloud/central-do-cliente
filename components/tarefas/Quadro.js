@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import SetorAbas from '@/components/SetorAbas';
 import Escolha from './Escolha';
 import { CORES_GRUPO, PRIORIDADES, STATUS, atrasada, corPrioridade, corStatus, fmtPrazo } from '@/lib/tarefas';
 import { corAvatar, iniciais } from '@/lib/util';
@@ -236,6 +237,7 @@ export default function Quadro({ setor, grupos, tarefas: iniciais_, equipe, hoje
           </span>
         </div>
         <div className="linha">
+          <SetorAbas slug={setor.slug} ativo="tarefas" />
           <button type="button" className="btn btn-sec" onClick={() => setNovoGrupo({ nome: '', cor: 'blue' })}>+ Novo grupo</button>
         </div>
       </div>

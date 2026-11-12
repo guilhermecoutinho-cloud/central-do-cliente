@@ -4,11 +4,12 @@ import { resumoEncontros } from '@/lib/encontros';
 import { ETAPAS } from '@/lib/onboarding';
 import { COR_PRODUTO, PRODUTOS, corAvatar, fmtDataHora, iniciais } from '@/lib/util';
 import Icone from '@/components/Icone';
+import { atrasada, hojeISO, somarDias } from '@/lib/tarefas';
 
 export default async function Painel({ searchParams }) {
   const filtro = searchParams?.ultimo || 'todos';
   const supabase = createClient();
-  const [{ data: clientes, error }, { count: semAcessoTotal }, { data: encontros }, { data: presencaCliente }, { data: porEncontro }] = await Promise.all([
+  const [{ data: clientes, error }, { count: semAcessoTotal }, { data: encontros }, { data: presencaCliente }, { data: porEncontro }, tarefasSetor] = await Promise.all([
     supabase
       .from('clientes')
       .select('id, nome, empresa, produto, status, etapa_onboarding, responsavel, data_inicio, encontros_contratados, criado_em')
@@ -18,7 +19,16 @@ export default async function Painel({ searchParams }) {
     supabase.from('encontros').select('*').order('data'),
     supabase.from('presenca_cliente').select('encontro_id, cliente_id, presente'),
     supabase.from('presenca_encontro').select('encontro_id, presentes, faltas'),
+    // Se o central-empresa.sql ainda não rodou, a tabela não existe e o bloco de tarefas some
+    supabase.from('tarefas').select('status, prazo').eq('setor', 'sucesso').neq('status', 'Feito'),
   ]);
+  const hoje = hojeISO();
+  const tarefasAbertas = tarefasSetor.error ? null : tarefasSetor.data || [];
+  const resumoTarefas = tarefasAbertas && {
+    abertas: tarefasAbertas.length,
+    atrasadas: tarefasAbertas.filter((t) => atrasada(t, hoje)).length,
+    semana: tarefasAbertas.filter((t) => t.prazo && t.prazo >= hoje && t.prazo <= somarDias(hoje, 7)).length,
+  };
   if (error) throw new Error(error.message);
 
   const agora = new Date();
@@ -185,6 +195,28 @@ export default async function Painel({ searchParams }) {
             )}
           </div>
         </section>
+        {resumoTarefas ? (
+          <section className="card">
+            <div className="entre">
+              <h2 className="h2">Tarefas do setor</h2>
+              <Link href="/setor/sucesso/painel" className="small" style={{ fontWeight: 600 }}>Ver painel de tarefas</Link>
+            </div>
+            <div className="grid-auto" style={{ gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10 }}>
+              <Link href="/setor/sucesso" className="card-2 pilha-p" style={{ color: 'var(--texto)' }}>
+                <span className="small muted">Abertas</span>
+                <span style={{ fontSize: 24, fontWeight: 700, color: 'var(--blue)' }}>{resumoTarefas.abertas}</span>
+              </Link>
+              <Link href="/setor/sucesso" className="card-2 pilha-p" style={{ color: 'var(--texto)' }}>
+                <span className="small muted">Atrasadas</span>
+                <span style={{ fontSize: 24, fontWeight: 700, color: resumoTarefas.atrasadas ? 'var(--coral)' : 'var(--texto)' }}>{resumoTarefas.atrasadas}</span>
+              </Link>
+              <Link href="/setor/sucesso" className="card-2 pilha-p" style={{ color: 'var(--texto)' }}>
+                <span className="small muted">Em 7 dias</span>
+                <span style={{ fontSize: 24, fontWeight: 700, color: 'var(--amber)' }}>{resumoTarefas.semana}</span>
+              </Link>
+            </div>
+          </section>
+        ) : null}
         <section className="card">
           <h2 className="h2">Próximos encontros</h2>
           <div className="lista-alerta">

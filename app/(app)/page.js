@@ -79,7 +79,7 @@ export default async function Inicio() {
             const tem = podeSetor(perfil, s.slug);
             const doSetor = lista.filter((t) => t.setor === s.slug && t.status !== 'Feito');
             const atr = doSetor.filter((t) => atrasada(t, hoje)).length;
-            const href = s.slug === 'sucesso' ? '/sucesso' : `/setor/${s.slug}`;
+            const href = s.slug === 'sucesso' ? '/sucesso' : `/setor/${s.slug}/painel`;
             const conteudo = (
               <>
                 <span className="entre" style={{ gap: 10 }}>
