@@ -585,3 +585,19 @@ a.card.faixa:hover { border-color: rgba(var(--c-rgb), .45); box-shadow: inset 0 
 .graf-col .b.pilha-b > span { display: block; min-height: 2px; }
 .graf-col:not(.atual) .b.pilha-b { opacity: .75; }
 .graf-col:hover .b.pilha-b { opacity: 1; background: none; }
+
+/* ---------- Criar tarefas com IA ---------- */
+.ia-lista { display: flex; flex-direction: column; gap: 8px; }
+.ia-item {
+  display: grid; grid-template-columns: minmax(200px, 1fr) 140px 130px 140px 110px 150px 28px; gap: 6px; align-items: center;
+  padding: 8px; border-radius: 12px; background: var(--card2); border: 1px solid var(--borda); animation: entrar .35s var(--ease) backwards;
+}
+.ia-item .input { padding: 8px 10px; font-size: 13px; min-width: 0; }
+.ia-remover { font-size: 20px; line-height: 1; justify-self: center; }
+.ia-desc { grid-column: 1 / -1; padding: 0 4px; }
+@media (max-width: 1180px) {
+  .ia-item { grid-template-columns: repeat(2, minmax(0, 1fr)); position: relative; padding-right: 40px; }
+  .ia-item .ia-titulo { grid-column: 1 / -1; }
+  .ia-remover { position: absolute; top: 14px; right: 10px; }
+}
+@media (max-width: 900px) { .ia-item .input { font-size: 16px; } }

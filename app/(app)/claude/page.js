@@ -28,6 +28,7 @@ export default async function ConectarClaude() {
     }
   }
   const pronto = chave.length >= 24 && temServico && testeBanco?.ok;
+  const temGemini = !!(process.env.GEMINI_API_KEY || '').trim();
 
   return (
     <>
@@ -86,6 +87,18 @@ export default async function ConectarClaude() {
           </span>
         </section>
       </div>
+
+      <section className={'card faixa ' + (temGemini ? 'tom-violet' : 'tom-amber')}>
+        <div className="entre">
+          <h2 className="h2">Gemini dentro da Central</h2>
+          <span className={'pill ' + (temGemini ? 't-green' : 't-amber')}>{temGemini ? 'Ligado' : 'Desligado'}</span>
+        </div>
+        <p className="muted" style={{ margin: 0 }}>
+          Com o Gemini ligado, o quadro de cada setor ganha o botão Criar com IA: a pessoa cola uma lista ou a ata de uma reunião,
+          o Gemini separa as tarefas e ela revisa antes de criar. Para ligar, gere uma chave em aistudio.google.com (Get API key) e
+          coloque na Vercel como <code>GEMINI_API_KEY</code>, depois faça Redeploy.
+        </p>
+      </section>
 
       <section className="card">
         <h2 className="h2">3. Usar no chat</h2>

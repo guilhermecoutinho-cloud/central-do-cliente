@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import SetorAbas from '@/components/SetorAbas';
 import Escolha from './Escolha';
+import CriarComIA from './CriarComIA';
 import { CORES_GRUPO, PRIORIDADES, STATUS, atrasada, corPrioridade, corStatus, fmtPrazo } from '@/lib/tarefas';
 import { corAvatar, iniciais } from '@/lib/util';
 import { atualizarTarefa, criarGrupo, criarTarefa, excluirGrupo, renomearGrupo } from '@/app/actions-tarefas';
@@ -36,7 +37,7 @@ function CampoNovaTarefa({ onAdicionar }) {
   );
 }
 
-export default function Quadro({ setor, grupos, tarefas: iniciais_, equipe, hoje, visaoInicial = 'tabela' }) {
+export default function Quadro({ setor, grupos, tarefas: iniciais_, equipe, hoje, visaoInicial = 'tabela', iaAtiva = false }) {
   const router = useRouter();
   const [tarefas, setTarefas] = useState(iniciais_);
   const [visao, setVisao] = useState(visaoInicial);
@@ -44,6 +45,8 @@ export default function Quadro({ setor, grupos, tarefas: iniciais_, equipe, hoje
   const [busca, setBusca] = useState('');
   const [fechados, setFechados] = useState({});
   const [erro, setErro] = useState('');
+  const [ok, setOk] = useState('');
+  const [iaAberta, setIaAberta] = useState(false);
   const [novoGrupo, setNovoGrupo] = useState(null);
   const [confirmarGrupo, setConfirmarGrupo] = useState(null);
   const [renomeando, setRenomeando] = useState(null);
@@ -238,9 +241,27 @@ export default function Quadro({ setor, grupos, tarefas: iniciais_, equipe, hoje
         </div>
         <div className="linha">
           <SetorAbas slug={setor.slug} ativo="tarefas" />
+          {iaAtiva ? (
+            <button type="button" className="btn" onClick={() => setIaAberta(true)} disabled={iaAberta}>Criar com IA</button>
+          ) : null}
           <button type="button" className="btn btn-sec" onClick={() => setNovoGrupo({ nome: '', cor: 'blue' })}>+ Novo grupo</button>
         </div>
       </div>
+
+      {iaAberta ? (
+        <CriarComIA
+          setor={setor}
+          grupos={grupos}
+          equipe={equipe}
+          onFechar={() => setIaAberta(false)}
+          onCriadas={(n) => {
+            setIaAberta(false);
+            setOk(`${n} ${n === 1 ? 'tarefa criada' : 'tarefas criadas'} com IA.`);
+            setTimeout(() => setOk(''), 4000);
+            router.refresh();
+          }}
+        />
+      ) : null}
 
       {novoGrupo ? (
         <form className="card" onSubmit={salvarGrupo} style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-end', gap: 12 }}>
@@ -465,6 +486,7 @@ export default function Quadro({ setor, grupos, tarefas: iniciais_, equipe, hoje
       ) : null}
 
       {erro ? <div className="aviso t-coral toast" role="alert">{erro}</div> : null}
+      {ok ? <div className="aviso t-green toast" role="status">{ok}</div> : null}
     </>
   );
 }

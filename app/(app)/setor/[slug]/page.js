@@ -52,6 +52,7 @@ export default async function QuadroSetor({ params, searchParams }) {
       equipe={equipe || []}
       hoje={hojeISO()}
       visaoInicial={visao}
+      iaAtiva={!!(process.env.GEMINI_API_KEY || '').trim()}
     />
   );
 }
