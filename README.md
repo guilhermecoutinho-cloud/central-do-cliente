@@ -81,6 +81,14 @@ Com o conector, você manda as tarefas no chat do Claude e elas aparecem nos qua
 
 O endereço funciona como senha. Para trocar, mude a `CLAUDE_CONECTOR_CHAVE` na Vercel.
 
+## Criar tarefas com IA (Gemini)
+
+1. Em https://aistudio.google.com, entre com a conta Google da empresa → **Get API key** → **Create API key**.
+2. Na Vercel, adicione `GEMINI_API_KEY` com essa chave (Production) e faça **Redeploy**.
+3. No quadro de cada setor aparece o botão **Criar com IA**: cole uma lista, ata ou mensagem, revise e crie.
+
+Opcional: `GEMINI_MODELO` para trocar o modelo (padrão `gemini-3.5-flash-lite`).
+
 ## Cashback e gamificação
 
 - Quem já tinha o banco criado: rode **uma vez** o arquivo `supabase/cashback.sql` no SQL Editor. Quem for criar do zero, o `schema.sql` já inclui.
