@@ -4,6 +4,7 @@ import { resumoEncontros } from '@/lib/encontros';
 import { ETAPAS } from '@/lib/onboarding';
 import { COR_PRODUTO, PRODUTOS, corAvatar, fmtDataHora, iniciais } from '@/lib/util';
 import Icone from '@/components/Icone';
+import SetorIcone from '@/components/SetorIcone';
 import { atrasada, hojeISO, somarDias } from '@/lib/tarefas';
 
 export default async function Painel({ searchParams }) {
@@ -71,7 +72,7 @@ export default async function Painel({ searchParams }) {
     <>
       <div className="topo anim">
         <div>
-          <span className="selo tom-violet"><span className="sigla">SC</span>Sucesso do Cliente</span>
+          <span className="selo"><SetorIcone slug="sucesso" tamanho={24} />Sucesso do Cliente</span>
           <h1 className="titulo">Painel do Sucesso do Cliente</h1>
         </div>
         <div className="linha">

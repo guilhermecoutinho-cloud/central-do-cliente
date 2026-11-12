@@ -77,7 +77,7 @@ export default function Sidebar({ nome, admin, setores, atrasadas }) {
             return (
               <span key={s.slug} className="nav-off" title="Sem acesso">
                 <span className="linha" style={{ gap: 10, flexWrap: 'nowrap' }}>
-                  <span className="sigla t-gray">{s.sigla}</span>
+                  <Icone nome={s.icone} />
                   {s.nome}
                 </span>
                 <svg aria-label="Sem acesso" role="img" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -91,7 +91,7 @@ export default function Sidebar({ nome, admin, setores, atrasadas }) {
           return (
             <div key={s.slug} className="pilha-p" style={{ gap: 2 }}>
               <Link href={href} className={'nav-a tom-' + s.cor + (ativo ? ' ativo' : '')}>
-                <span className={'sigla t-' + s.cor}>{s.sigla}</span>
+                <Icone nome={s.icone} />
                 {s.nome}
               </Link>
               {ativo ? (

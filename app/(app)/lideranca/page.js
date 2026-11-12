@@ -7,6 +7,7 @@ import { diasAtraso, resumoPainel, saudeArea, semanasPorSetor } from '@/lib/pain
 import { fmtMoeda } from '@/lib/cashback';
 import { COR_PRODUTO, PRODUTOS, corAvatar, fmtDataHora, iniciais } from '@/lib/util';
 import Icone from '@/components/Icone';
+import SetorIcone from '@/components/SetorIcone';
 import SemAcesso from '@/components/SemAcesso';
 
 const SETOR = Object.fromEntries(SETORES.map((s) => [s.slug, s]));
@@ -127,7 +128,7 @@ export default async function Lideranca() {
               <Link key={a.slug} href={href} className={'card faixa area tom-' + a.cor}>
                 <div className="entre" style={{ flexWrap: 'nowrap' }}>
                   <span className="linha" style={{ gap: 10, flexWrap: 'nowrap', minWidth: 0 }}>
-                    <span className={'sigla t-' + a.cor} style={{ width: 34, height: 34, flexBasis: 34, borderRadius: 10, fontSize: 12 }}>{a.sigla}</span>
+                    <SetorIcone slug={a.slug} tamanho={36} />
                     <span style={{ fontWeight: 700, fontSize: 15 }}>{a.nome}</span>
                   </span>
                   <span className={'pill t-' + a.saude.cor}>{a.saude.nome}</span>
@@ -205,7 +206,7 @@ export default async function Lideranca() {
                 const dias = diasAtraso(t.prazo, hoje);
                 return (
                   <div key={t.id} style={{ alignItems: 'center' }}>
-                    <span className={'sigla t-' + (s?.cor || 'gray')} title={s?.nome}>{s?.sigla}</span>
+                    <SetorIcone slug={t.setor} tamanho={28} />
                     <Link href={`/tarefas/${t.id}`} style={{ color: 'var(--texto2)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {t.titulo}
                     </Link>

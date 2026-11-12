@@ -6,6 +6,7 @@ import { atrasada, hojeISO } from '@/lib/tarefas';
 import { fmtDataHora } from '@/lib/util';
 import AcessoMatriz from '@/components/AcessoMatriz';
 import Icone from '@/components/Icone';
+import SetorIcone from '@/components/SetorIcone';
 
 function saudacao() {
   const h = Number(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo', hour: 'numeric', hour12: false }));
@@ -86,7 +87,7 @@ export default async function Inicio() {
             const conteudo = (
               <>
                 <span className="entre" style={{ gap: 10 }}>
-                  <span className={'sigla t-' + s.cor} style={{ width: 38, height: 38, flexBasis: 38, borderRadius: 11, fontSize: 13 }}>{s.sigla}</span>
+                  <SetorIcone slug={s.slug} tamanho={40} />
                   <span className={'pill ' + (tem ? 't-green' : 't-gray')}>{tem ? 'Com acesso' : 'Sem acesso'}</span>
                 </span>
                 <span style={{ fontSize: 17, fontWeight: 700 }}>{s.nome}</span>

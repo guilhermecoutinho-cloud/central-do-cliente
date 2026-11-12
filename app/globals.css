@@ -110,7 +110,7 @@ button { -webkit-tap-highlight-color: transparent; }
 .nav-a.ativo { background: rgba(98, 204, 116, .11); color: var(--verde); font-weight: 600; transform: none; }
 .nav-off { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; color: #5f6e65; font-size: 14px; }
 .sigla { flex: 0 0 24px; width: 24px; height: 24px; border-radius: 7px; display: inline-flex; align-items: center; justify-content: center; font-size: 10.5px; font-weight: 700; letter-spacing: .02em; }
-.subnav { display: flex; flex-direction: column; gap: 1px; padding: 2px 0 8px 46px; animation: entrar .35s var(--ease) backwards; }
+.subnav { display: flex; flex-direction: column; gap: 1px; padding: 2px 0 8px 40px; animation: entrar .35s var(--ease) backwards; }
 .subnav a { padding: 7px 10px; border-radius: 8px; color: #aeb9b2; font-size: 13px; transition: background .2s, color .2s; }
 .subnav a:hover { background: rgba(255, 255, 255, .045); color: #fff; }
 .subnav a.ativo { background: rgba(255, 255, 255, .06); color: var(--texto); font-weight: 600; }
@@ -517,7 +517,10 @@ a.pill:hover { filter: brightness(1.12); }
   display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px 4px 4px; border-radius: 999px;
   background: var(--card2); color: var(--texto3); font-size: 13px; font-weight: 600; align-self: flex-start;
 }
-.selo .sigla { flex-basis: 22px; width: 22px; height: 22px; border-radius: 999px; background: var(--borda-forte); color: var(--texto); font-size: 10px; }
+/* Símbolo do setor: neutro, verde quando o card é clicável e está em foco */
+.setor-ic { background: rgba(255, 255, 255, .05); color: var(--texto2); transition: background .2s, color .2s; }
+a.card:hover .setor-ic { background: rgba(98, 204, 116, .12); color: var(--verde); }
+.selo .setor-ic { border-radius: 999px !important; background: var(--borda-forte); color: var(--texto); }
 
 .selo + .titulo { margin-top: 12px; }
 

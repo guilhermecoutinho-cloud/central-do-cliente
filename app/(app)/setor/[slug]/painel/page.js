@@ -7,6 +7,7 @@ import { CORES_GRUPO, atrasada, fmtPrazo, fmtQuando, hojeISO } from '@/lib/taref
 import { resumoPainel } from '@/lib/painel';
 import { corAvatar, iniciais } from '@/lib/util';
 import Icone from '@/components/Icone';
+import SetorIcone from '@/components/SetorIcone';
 import SetorAbas from '@/components/SetorAbas';
 import SemAcesso from '@/components/SemAcesso';
 
@@ -59,7 +60,7 @@ export default async function PainelSetor({ params }) {
     <>
       <div className="topo">
         <div className="pilha-p">
-          <span className={'selo tom-' + setor.cor}><span className="sigla">{setor.sigla}</span>{setor.nome}</span>
+          <span className="selo"><SetorIcone slug={setor.slug} tamanho={24} />{setor.nome}</span>
           <h1 className="titulo">Painel de {setor.nome}</h1>
           <span className="small" style={{ color: 'var(--texto3)' }}>Visão geral de como o setor está hoje</span>
         </div>
