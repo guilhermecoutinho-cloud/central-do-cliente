@@ -88,7 +88,7 @@ export default async function Inicio() {
               <>
                 <span className="entre" style={{ gap: 10 }}>
                   <SetorIcone slug={s.slug} tamanho={40} />
-                  <span className={'pill ' + (tem ? 't-green' : 't-gray')}>{tem ? 'Com acesso' : 'Sem acesso'}</span>
+                  {tem ? null : <span className="pill t-gray">Sem acesso</span>}
                 </span>
                 <span style={{ fontSize: 17, fontWeight: 700 }}>{s.nome}</span>
                 <span className="small muted" style={{ lineHeight: 1.45 }}>{s.desc}</span>

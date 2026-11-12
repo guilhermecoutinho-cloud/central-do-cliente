@@ -30,12 +30,9 @@ export default function AcessoMatriz({ pessoas, acessos: iniciais_ }) {
 
   return (
     <section className="card">
-      <div className="entre" style={{ alignItems: 'flex-end' }}>
-        <div className="pilha-p">
-          <h2 className="h2">Acesso por usuário</h2>
-          <span className="small muted">Só o administrador vê esta parte. Clique para liberar ou bloquear um setor.</span>
-        </div>
-        <span className="pill t-violet">Visão do administrador</span>
+      <div className="pilha-p">
+        <h2 className="h2">Acesso por usuário</h2>
+        <span className="small muted">Só o administrador vê esta parte. Clique para liberar ou bloquear um setor.</span>
       </div>
       <div className="tabela-box">
         <table className="tabela cartoes">
@@ -53,32 +50,37 @@ export default function AcessoMatriz({ pessoas, acessos: iniciais_ }) {
                     <span className={'av t-' + corAvatar(p.user_id)} style={{ width: 32, height: 32, borderRadius: '50%' }}>{iniciais(p.nome)}</span>
                     <span className="pilha-p" style={{ gap: 2 }}>
                       <span style={{ fontWeight: 600 }}>{p.nome}</span>
-                      <span className="small muted">{p.papel === 'admin' ? 'Administrador · vê tudo' : 'Equipe'}</span>
+                      <span className="small muted">{p.papel === 'admin' ? 'Administrador' : 'Equipe'}</span>
                     </span>
                   </span>
                 </td>
-                {SETORES.map((s) => {
-                  const ok = p.papel === 'admin' || !!acessos[p.user_id + ':' + s.slug];
-                  return (
-                    <td key={s.slug} data-label={s.nome} style={{ textAlign: 'center' }}>
-                      <button
-                        type="button"
-                        onClick={() => alternar(p, s.slug)}
-                        disabled={p.papel === 'admin'}
-                        aria-pressed={ok}
-                        aria-label={(ok ? 'Bloquear ' : 'Liberar ') + s.nome + ' para ' + p.nome}
-                        style={{
-                          width: 44, height: 36, borderRadius: 10, cursor: p.papel === 'admin' ? 'default' : 'pointer', fontSize: 15, fontWeight: 700,
-                          background: ok ? 'rgba(98,204,116,0.16)' : 'transparent',
-                          color: ok ? 'var(--verde)' : '#3a4a40',
-                          border: ok ? '1px solid rgba(98,204,116,0.4)' : '1px dashed var(--borda2)',
-                        }}
-                      >
-                        {ok ? '✓' : '—'}
-                      </button>
-                    </td>
-                  );
-                })}
+                {p.papel === 'admin' ? (
+                  <td colSpan={SETORES.length} data-label="" style={{ textAlign: 'center' }}>
+                    <span className="small muted">Acesso a todos os setores</span>
+                  </td>
+                ) : (
+                  SETORES.map((s) => {
+                    const ok = !!acessos[p.user_id + ':' + s.slug];
+                    return (
+                      <td key={s.slug} data-label={s.nome} style={{ textAlign: 'center' }}>
+                        <button
+                          type="button"
+                          className={'acesso-tg' + (ok ? ' on' : '')}
+                          onClick={() => alternar(p, s.slug)}
+                          aria-pressed={ok}
+                          aria-label={(ok ? 'Bloquear ' : 'Liberar ') + s.nome + ' para ' + p.nome}
+                          title={ok ? 'Clique para bloquear' : 'Clique para liberar'}
+                        >
+                          {ok ? (
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5" /></svg>
+                          ) : (
+                            <span aria-hidden="true" className="acesso-vazio" />
+                          )}
+                        </button>
+                      </td>
+                    );
+                  })
+                )}
               </tr>
             ))}
           </tbody>

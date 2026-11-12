@@ -589,3 +589,15 @@ a.card:hover .setor-ic { background: rgba(98, 204, 116, .12); color: var(--verde
   .ia-remover { position: absolute; top: 14px; right: 10px; }
 }
 @media (max-width: 900px) { .ia-item .input { font-size: 16px; } }
+
+/* Grade de acesso por usuário: marcação simples, sem caixinhas */
+.acesso-tg {
+  width: 36px; height: 36px; border: 0; border-radius: 999px; background: transparent; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; color: var(--verde);
+  transition: background .2s, transform .15s var(--ease);
+}
+.acesso-tg:hover { background: rgba(255, 255, 255, .05); }
+.acesso-tg:active { transform: scale(.9); }
+.acesso-tg.on svg { animation: pop .3s var(--ease); }
+.acesso-vazio { width: 14px; height: 2px; border-radius: 2px; background: var(--borda-forte); transition: background .2s; }
+.acesso-tg:hover .acesso-vazio { background: var(--muted2); }
