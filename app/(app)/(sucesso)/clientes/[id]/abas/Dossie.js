@@ -82,6 +82,19 @@ export default async function AbaDossie({ c, membros, searchParams }) {
               <div className="campo"><label htmlFor="d-resp">Responsável CAUP</label><input id="d-resp" name="responsavel" defaultValue={c.responsavel || ''} /></div>
               <div className="campo"><label htmlFor="d-sub">Substituto</label><input id="d-sub" name="substituto" defaultValue={c.substituto || ''} /></div>
               <div className="campo"><label htmlFor="d-closer">Quem vendeu</label><input id="d-closer" name="closer" defaultValue={c.closer || ''} /></div>
+              {'cpf' in c ? (
+                <>
+                  <div className="campo"><label htmlFor="d-nasc">Data de nascimento</label><input id="d-nasc" name="data_nascimento" type="date" defaultValue={c.data_nascimento || ''} style={{ colorScheme: 'dark' }} /></div>
+                  <div className="campo"><label htmlFor="d-cpf">CPF</label><input id="d-cpf" name="cpf" defaultValue={c.cpf || ''} /></div>
+                  <div className="campo"><label htmlFor="d-rg">RG</label><input id="d-rg" name="rg" defaultValue={c.rg || ''} /></div>
+                  <div className="campo"><label htmlFor="d-email">E-mail</label><input id="d-email" name="email" type="email" defaultValue={c.email || ''} /></div>
+                  <div className="campo"><label htmlFor="d-cel">Celular</label><input id="d-cel" name="celular" defaultValue={c.celular || ''} /></div>
+                  <div className="campo inteiro"><label htmlFor="d-end">Endereço</label><input id="d-end" name="endereco" defaultValue={c.endereco || ''} /></div>
+                  <div className="campo"><label htmlFor="d-bairro">Bairro</label><input id="d-bairro" name="bairro" defaultValue={c.bairro || ''} /></div>
+                  <div className="campo"><label htmlFor="d-uf">Estado</label><input id="d-uf" name="estado" defaultValue={c.estado || ''} /></div>
+                  <div className="campo"><label htmlFor="d-cep">CEP</label><input id="d-cep" name="cep" defaultValue={c.cep || ''} /></div>
+                </>
+              ) : null}
               <div className="campo inteiro"><label htmlFor="d-cond">Condições</label><input id="d-cond" name="condicoes" defaultValue={c.condicoes || ''} /></div>
               <div className="campo inteiro"><label htmlFor="d-obs">Observações</label><textarea id="d-obs" name="observacoes" defaultValue={c.observacoes || ''} /></div>
             </div>

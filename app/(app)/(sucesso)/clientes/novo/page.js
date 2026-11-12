@@ -1,15 +1,23 @@
+import Link from 'next/link';
 import { criarCliente } from '@/app/actions';
 import { PRODUTOS } from '@/lib/util';
+import ColarMatricula from '@/components/ColarMatricula';
 
-export default function NovoCliente() {
+export default function NovoCliente({ searchParams }) {
+  const manual = searchParams?.modo === 'manual';
   return (
     <>
       <div className="topo anim">
         <div>
-          <span className="eyebrow">Cadastro inicial, sem integração</span>
+          <span className="eyebrow">Sucesso do Cliente</span>
           <h1 className="titulo">Novo cliente</h1>
         </div>
+        <div className="segmentos" role="group" aria-label="Como cadastrar">
+          <Link href="/clientes/novo" className={manual ? '' : 'ativo'}>Colar dados</Link>
+          <Link href="/clientes/novo?modo=manual" className={manual ? 'ativo' : ''}>Preencher à mão</Link>
+        </div>
       </div>
+      {!manual ? <ColarMatricula /> : (
       <form action={criarCliente} className="card anim anim-1" style={{ maxWidth: 900 }}>
         <h2 className="h2">Contato principal</h2>
         <div className="form-grid">
@@ -40,6 +48,7 @@ export default function NovoCliente() {
         </div>
         <button type="submit" className="btn" style={{ alignSelf: 'flex-start' }}>Cadastrar e abrir o onboarding</button>
       </form>
+      )}
     </>
   );
 }

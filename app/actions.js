@@ -63,10 +63,70 @@ export async function criarCliente(formData) {
   redirect(`/clientes/${data.id}?aba=onboarding`);
 }
 
+const CAMPOS_MATRICULA_DB = ['data_nascimento', 'cpf', 'rg', 'email', 'celular', 'endereco', 'bairro', 'estado', 'cep'];
+
 const CAMPOS_CADASTRO = [
   'nome', 'empresa', 'produto', 'responsavel', 'substituto', 'data_inicio', 'condicoes',
   'cnpj', 'segmento', 'cidade', 'site', 'instagram', 'closer', 'observacoes',
+  ...CAMPOS_MATRICULA_DB,
 ];
+
+const ROTULOS_MATRICULA = {
+  data_nascimento: 'Data de nascimento', cpf: 'CPF', rg: 'RG', email: 'E-mail', celular: 'Celular',
+  endereco: 'Endereço', bairro: 'Bairro', estado: 'Estado', cep: 'CEP',
+};
+
+// Cria o cliente a partir do bloco "Dados para matrícula" colado na tela Novo cliente.
+export async function criarClienteMatricula(formData) {
+  const supabase = createClient();
+  const nome = texto(formData, 'nome');
+  const empresa = texto(formData, 'empresa');
+  const produto = texto(formData, 'produto');
+  if (!nome || !empresa || !produto) throw new Error('Preencha nome, empresa e produto.');
+
+  const base = {
+    nome,
+    empresa,
+    produto,
+    cidade: texto(formData, 'cidade'),
+    data_inicio: texto(formData, 'data_inicio'),
+    encontros_contratados: inteiro(formData, 'encontros_contratados'),
+    responsavel: texto(formData, 'responsavel'),
+    closer: texto(formData, 'closer'),
+  };
+  const matricula = {};
+  for (const c of CAMPOS_MATRICULA_DB) {
+    const v = texto(formData, c);
+    if (v) matricula[c] = v;
+  }
+
+  let { data, error } = await supabase.from('clientes').insert({ ...base, ...matricula }).select('id').single();
+
+  // Se o matricula.sql ainda não rodou, as colunas novas não existem: guarda os dados nas observações.
+  if (error && /column|schema cache/i.test(error.message) && Object.keys(matricula).length) {
+    const linhas = Object.entries(matricula).map(([k, v]) => `${ROTULOS_MATRICULA[k]}: ${v}`);
+    ({ data, error } = await supabase
+      .from('clientes')
+      .insert({ ...base, observacoes: 'Dados para matrícula\n' + linhas.join('\n') })
+      .select('id')
+      .single());
+  }
+  checar(error);
+
+  const { error: e2 } = await supabase.from('membros').insert({
+    cliente_id: data.id,
+    nome,
+    cargo: 'Sócio',
+    telefone: matricula.celular || null,
+    email: matricula.email || null,
+    papel: 'Decisor',
+  });
+  checar(e2);
+
+  revalidatePath('/sucesso');
+  revalidatePath('/onboarding');
+  redirect(`/clientes/${data.id}?aba=onboarding`);
+}
 
 export async function atualizarCliente(formData) {
   const supabase = createClient();

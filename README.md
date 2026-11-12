@@ -89,6 +89,12 @@ O endereço funciona como senha. Para trocar, mude a `CLAUDE_CONECTOR_CHAVE` na 
 
 Opcional: `GEMINI_MODELO` para trocar o modelo (padrão `gemini-3.5-flash-lite`).
 
+## Novo cliente colando os dados para matrícula
+
+- Rode **uma vez** o arquivo `supabase/matricula.sql` no SQL Editor (cria os campos de nascimento, CPF, RG, e-mail, celular, endereço, bairro, estado e CEP).
+- Em **+ Novo cliente**, cole o bloco "Dados para matrícula". Os campos se preenchem sozinhos; escolha o produto e clique em criar.
+- Antes de rodar o SQL também funciona: os dados ficam guardados nas Observações do cliente.
+
 ## Cashback e gamificação
 
 - Quem já tinha o banco criado: rode **uma vez** o arquivo `supabase/cashback.sql` no SQL Editor. Quem for criar do zero, o `schema.sql` já inclui.

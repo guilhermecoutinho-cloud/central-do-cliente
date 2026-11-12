@@ -49,6 +49,15 @@ create table if not exists public.clientes (
   closer                text,
   perfil                text,
   observacoes           text,
+  data_nascimento       date,                             -- dados para matrícula
+  cpf                   text,
+  rg                    text,
+  email                 text,
+  celular               text,
+  endereco              text,
+  bairro                text,
+  estado                text,
+  cep                   text,
   token                 uuid not null unique default gen_random_uuid(),  -- link do formulário de entrada
   formulario            jsonb,
   formulario_em         timestamptz,
