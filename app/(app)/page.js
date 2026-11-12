@@ -43,7 +43,10 @@ export default async function Inicio() {
           </span>
           <h1 className="titulo">{saudacao()}, {primeiroNome}</h1>
         </div>
-        <Link href="/minhas-tarefas" className="btn">Ver minhas tarefas</Link>
+        <div className="linha">
+          {perfil.admin ? <Link href="/lideranca" className="btn btn-sec">Visão da liderança</Link> : null}
+          <Link href="/minhas-tarefas" className="btn">Ver minhas tarefas</Link>
+        </div>
       </div>
 
       <div className="grid-kpi anim anim-1">

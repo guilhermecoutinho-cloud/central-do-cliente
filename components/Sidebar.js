@@ -56,6 +56,13 @@ export default function Sidebar({ nome, admin, setores, atrasadas }) {
           {atrasadas > 0 ? <span className="pill t-coral" title="Atrasadas">{atrasadas}</span> : null}
         </Link>
 
+        {admin ? (
+          <Link href="/lideranca" className={'nav-a' + (path === '/lideranca' ? ' ativo' : '')}>
+            <Icone nome="grafico" />
+            Visão da liderança
+          </Link>
+        ) : null}
+
         <span className="secao">SETORES</span>
         {SETORES.map((s) => {
           const tem = pode(s.slug);

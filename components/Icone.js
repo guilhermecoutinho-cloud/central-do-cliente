@@ -37,6 +37,11 @@ const PATHS = {
       <path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" />
     </>
   ),
+  grafico: (
+    <>
+      <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
+    </>
+  ),
   relogio: (
     <>
       <circle cx="12" cy="12" r="9" />
