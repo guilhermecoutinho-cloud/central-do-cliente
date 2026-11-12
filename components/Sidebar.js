@@ -62,6 +62,12 @@ export default function Sidebar({ nome, admin, setores, atrasadas }) {
             Visão da liderança
           </Link>
         ) : null}
+        {admin ? (
+          <Link href="/claude" className={'nav-a' + (path === '/claude' ? ' ativo' : '')}>
+            <Icone nome="mais" />
+            Conectar ao Claude
+          </Link>
+        ) : null}
 
         <span className="secao">SETORES</span>
         {SETORES.map((s) => {
