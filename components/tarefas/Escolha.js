@@ -35,7 +35,8 @@ export default function Escolha({ rotulo, botao, botaoClasse, botaoEstilo, opcoe
         aria-label={rotulo}
         onClick={() => setAberto((v) => !v)}
       >
-        {botao}
+        {/* a chave muda junto com o valor, então a célula faz uma animação curta ao trocar */}
+        <span key={String(valor)} className="troca">{botao}</span>
       </button>
       {aberto ? (
         <div role="listbox" aria-label={rotulo} className="escolha-lista" style={{ width: largura, [alinhar]: 0 }}>

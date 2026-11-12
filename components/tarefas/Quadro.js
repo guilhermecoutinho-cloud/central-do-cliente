@@ -400,7 +400,7 @@ export default function Quadro({ setor, grupos, tarefas: iniciais_, equipe, hoje
                     <Link
                       key={t.id}
                       href={t.temp ? '#' : `/tarefas/${t.id}`}
-                      className="k-card"
+                      className={'k-card' + (arrastando === t.id ? ' arrastando' : '')}
                       draggable={!t.temp}
                       onDragStart={() => setArrastando(t.id)}
                       onDragEnd={() => setArrastando(null)}
