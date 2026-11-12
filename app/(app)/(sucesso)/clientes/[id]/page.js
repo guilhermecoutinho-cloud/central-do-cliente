@@ -54,7 +54,7 @@ export default async function FichaCliente({ params, searchParams }) {
         <div className="linha" style={{ gap: 18, flexWrap: 'nowrap' }}>
           <span className={'av av-g t-' + corAvatar(c.id)}>{iniciais(c.nome)}</span>
           <div className="pilha-p">
-            <Link href="/" className="small">Painel geral</Link>
+            <Link href="/sucesso" className="small">Sucesso do Cliente</Link>
             <h1 className="titulo-m">{c.nome} · {c.empresa}</h1>
             <div className="linha" style={{ gap: 8 }}>
               <span className={'pill t-' + COR_PRODUTO[c.produto]}>{c.produto}</span>

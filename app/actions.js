@@ -17,7 +17,7 @@ function inteiro(formData, campo, padrao = 0) {
 }
 
 function revalidarCliente(id) {
-  revalidatePath('/');
+  revalidatePath('/sucesso');
   revalidatePath('/onboarding');
   revalidatePath(`/clientes/${id}`);
 }
@@ -58,7 +58,7 @@ export async function criarCliente(formData) {
   });
   checar(e2);
 
-  revalidatePath('/');
+  revalidatePath('/sucesso');
   revalidatePath('/onboarding');
   redirect(`/clientes/${data.id}?aba=onboarding`);
 }
@@ -128,9 +128,9 @@ export async function excluirCliente(formData) {
   if (texto(formData, 'confirmacao') !== 'EXCLUIR') throw new Error('Para excluir, digite EXCLUIR no campo de confirmação.');
   const { error } = await supabase.from('clientes').delete().eq('id', id);
   checar(error);
-  revalidatePath('/');
+  revalidatePath('/sucesso');
   revalidatePath('/onboarding');
-  redirect('/');
+  redirect('/sucesso');
 }
 
 // ---------------------------------------------------------------- Onboarding
@@ -297,7 +297,7 @@ export async function criarEncontro(formData) {
   const { error } = await supabase.from('encontros').insert({ produto, titulo, data, link: texto(formData, 'link') });
   checar(error);
   revalidatePath('/encontros');
-  revalidatePath('/');
+  revalidatePath('/sucesso');
 }
 
 export async function excluirEncontro(formData) {
@@ -305,7 +305,7 @@ export async function excluirEncontro(formData) {
   const { error } = await supabase.from('encontros').delete().eq('id', texto(formData, 'encontro_id'));
   checar(error);
   revalidatePath('/encontros');
-  revalidatePath('/');
+  revalidatePath('/sucesso');
   redirect('/encontros');
 }
 
@@ -324,7 +324,7 @@ export async function marcarPresenca(formData) {
     checar(error);
   }
   revalidatePath(`/encontros/${encontro_id}`);
-  revalidatePath('/');
+  revalidatePath('/sucesso');
 }
 
 export async function marcarRestantesComoFalta(formData) {
@@ -337,7 +337,7 @@ export async function marcarRestantesComoFalta(formData) {
     checar(error);
   }
   revalidatePath(`/encontros/${encontro_id}`);
-  revalidatePath('/');
+  revalidatePath('/sucesso');
 }
 
 // ---------------------------------------------------------------- Cashback

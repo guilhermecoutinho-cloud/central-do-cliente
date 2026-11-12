@@ -1,6 +1,8 @@
-# Central do Cliente · Capital Upgrade
+# Central da Empresa · Capital Upgrade
 
-Plataforma interna do time para acompanhar cada cliente: onboarding com checklist, time do cliente, encontros com chamada, dossiê (cadastro, contatos, acessos, formulários, arquivos), acompanhamentos e assessment por QR Code.
+Plataforma interna do time, organizada por setor (Sucesso do Cliente, Marketing, Vendas, Eventos e Financeiro), com acesso limitado por usuário e um quadro de tarefas estilo Monday em cada setor.
+
+No setor **Sucesso do Cliente** fica a antiga Central do Cliente: onboarding com checklist, time do cliente, encontros com chamada, dossiê (cadastro, contatos, acessos, formulários, arquivos), acompanhamentos, assessment por QR Code e cashback.
 
 Feita com **Next.js** (site) + **Supabase** (banco de dados, login e arquivos), para rodar na **Vercel**.
 
@@ -12,7 +14,7 @@ Feita com **Next.js** (site) + **Supabase** (banco de dados, login e arquivos), 
 
 1. Entre em https://supabase.com e crie um projeto (**New project**). Região sugerida: **South America (São Paulo)**. Guarde a senha do banco.
 2. No menu da esquerda, abra **SQL Editor** → **New query**.
-3. Abra o arquivo `supabase/schema.sql` deste projeto, copie tudo, cole no editor e clique em **Run**. Tem que aparecer "Success".
+3. Abra o arquivo `supabase/schema.sql` deste projeto, copie tudo, cole no editor e clique em **Run**. Tem que aparecer "Success". Depois faça o mesmo com o arquivo `supabase/central-empresa.sql` (setores, acessos e tarefas).
 4. Vá em **Authentication** → **Sign In / Providers** (ou **Providers**) e **desligue** a opção que permite novos cadastros ("Allow new users to sign up"). Assim só entra quem você criar.
 5. Crie o seu usuário: **Authentication** → **Users** → **Add user** → **Create new user**. Coloque e-mail e senha e marque **Auto Confirm User**.
 6. Libere esse usuário na equipe: volte ao **SQL Editor** e rode (trocando o e-mail e o nome):
@@ -22,7 +24,7 @@ Feita com **Next.js** (site) + **Supabase** (banco de dados, login e arquivos), 
    select id, 'Guilherme', 'admin' from auth.users where email = 'seu-email@capitalupgrade.com.br';
    ```
 
-   Faça o mesmo para cada pessoa do time (Tati, líder etc.): crie o usuário no passo 5 e rode o comando acima com o e-mail dela.
+   Faça o mesmo para cada pessoa do time: crie o usuário no passo 5 e rode o comando acima com o e-mail dela, trocando `'admin'` por `'time'`. Quem é `admin` vê todos os setores e libera o acesso dos outros na tela **Início** da central (grade "Acesso por usuário").
 7. Pegue as chaves: **Project Settings** → **API** (ou **Data API** / **API Keys**). Copie:
    - **Project URL** (ex.: `https://abcd1234.supabase.co`)
    - **anon public key** (em projetos novos pode aparecer como **publishable key**)
@@ -49,6 +51,16 @@ Feita com **Next.js** (site) + **Supabase** (banco de dados, login e arquivos), 
 Na Vercel: **Project** → **Settings** → **Domains** → adicione, por exemplo, `central.seudominio.com.br`. A Vercel mostra o registro DNS (CNAME) que precisa ser criado onde o domínio está registrado. Depois atualize a **Site URL** no Supabase com o novo endereço.
 
 ---
+
+## Setores e tarefas (estilo Monday)
+
+- Quem já tinha o banco criado: rode **uma vez** o arquivo `supabase/central-empresa.sql` no SQL Editor. Ele cria os setores, o acesso por usuário e as tarefas, e dá acesso ao Sucesso do Cliente para quem já estava na equipe (ninguém perde acesso). Pode rodar de novo sem problema.
+- **Início:** resumo das suas tarefas, os setores (com e sem acesso) e, para o administrador, a grade de acesso por usuário.
+- **Quadro do setor** (`/setor/marketing`, `/setor/vendas` etc.): grupos coloridos, tarefas com responsável, status, prazo e prioridade trocados direto na linha, e as visões **Tabela**, **Kanban** (arrastar entre colunas muda o status) e **Calendário**. Filtro por pessoa e busca.
+- **Tarefa aberta:** nome e descrição editáveis, subtarefas, mural de atualizações e registro de atividade.
+- **Minhas tarefas:** tudo que está com você, de todos os setores, separado por prazo.
+- O acesso é garantido no banco: quem não tem o setor liberado não consegue ler nem gravar as tarefas dele, mesmo tentando por fora do site.
+- Status, prioridades e cores ficam em `lib/tarefas.js`. Os setores ficam em `lib/setores.js`.
 
 ## Performance
 

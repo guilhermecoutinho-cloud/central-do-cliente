@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { usuarioId } from '@/lib/supabase/usuario';
+import { getPerfil } from '@/lib/perfil';
+import { hojeISO } from '@/lib/tarefas';
 import Sidebar from '@/components/Sidebar';
 import { sair } from '@/app/login/actions';
 
@@ -24,35 +25,52 @@ function Aviso({ titulo, children }) {
 }
 
 export default async function AppLayout({ children }) {
-  const supabase = createClient();
-  const id = await usuarioId(supabase);
-  if (!id) redirect('/login');
+  const perfil = await getPerfil();
+  if (!perfil) redirect('/login');
 
-  const { data: membro, error } = await supabase.from('equipe').select('nome, papel').eq('user_id', id).maybeSingle();
-
-  if (error) {
+  if (perfil.erro) {
     return (
       <Aviso titulo="O banco ainda não está pronto">
         <p className="muted" style={{ margin: 0 }}>Rode o arquivo supabase/schema.sql no SQL Editor do Supabase e recarregue a página.</p>
-        <span className="small muted">Detalhe técnico: {error.message}</span>
+        <span className="small muted">Detalhe técnico: {perfil.erro}</span>
       </Aviso>
     );
   }
 
-  if (!membro) {
+  if (perfil.semEquipe) {
     return (
       <Aviso titulo="Seu usuário ainda não foi liberado">
         <p className="muted" style={{ margin: 0 }}>
-          Você entrou, mas ainda não está na equipe da Central do Cliente. Peça ao administrador para liberar o seu acesso.
+          Você entrou, mas ainda não está na equipe da Central. Peça ao administrador para liberar o seu acesso.
         </p>
       </Aviso>
     );
   }
 
+  // Quantas tarefas minhas estão atrasadas (aparece no menu)
+  let atrasadas = 0;
+  if (!perfil.semMigracao) {
+    const supabase = createClient();
+    const { count } = await supabase
+      .from('tarefas')
+      .select('id', { count: 'exact', head: true })
+      .eq('responsavel', perfil.id)
+      .neq('status', 'Feito')
+      .lt('prazo', hojeISO());
+    atrasadas = count || 0;
+  }
+
   return (
     <div className="app">
-      <Sidebar usuario={membro.nome} />
-      <main className="conteudo">{children}</main>
+      <Sidebar nome={perfil.nome} admin={perfil.admin} setores={perfil.setores} atrasadas={atrasadas} />
+      <main className="conteudo">
+        {perfil.semMigracao ? (
+          <div className="aviso t-amber">
+            Falta ativar setores e tarefas: rode o arquivo supabase/central-empresa.sql no SQL Editor do Supabase.
+          </div>
+        ) : null}
+        {children}
+      </main>
     </div>
   );
 }

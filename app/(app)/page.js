@@ -1,203 +1,108 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
-import { resumoEncontros } from '@/lib/encontros';
-import { ETAPAS } from '@/lib/onboarding';
-import { COR_PRODUTO, PRODUTOS, corAvatar, fmtDataHora, iniciais } from '@/lib/util';
-import Icone from '@/components/Icone';
+import { getPerfil, podeSetor } from '@/lib/perfil';
+import { SETORES } from '@/lib/setores';
+import { atrasada, hojeISO } from '@/lib/tarefas';
+import { fmtDataHora } from '@/lib/util';
+import AcessoMatriz from '@/components/AcessoMatriz';
 
-export default async function Painel({ searchParams }) {
-  const filtro = searchParams?.ultimo || 'todos';
+function saudacao() {
+  const h = Number(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo', hour: 'numeric', hour12: false }));
+  return h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
+}
+
+export default async function Inicio() {
+  const perfil = await getPerfil();
   const supabase = createClient();
-  const [{ data: clientes, error }, { count: semAcessoTotal }, { data: encontros }, { data: presencaCliente }, { data: porEncontro }] = await Promise.all([
-    supabase
-      .from('clientes')
-      .select('id, nome, empresa, produto, status, etapa_onboarding, responsavel, data_inicio, encontros_contratados, criado_em')
-      .neq('status', 'encerrado')
-      .order('criado_em', { ascending: false }),
-    supabase.from('membros').select('id', { count: 'exact', head: true }).eq('acesso_liberado', false),
-    supabase.from('encontros').select('*').order('data'),
-    supabase.from('presenca_cliente').select('encontro_id, cliente_id, presente'),
-    supabase.from('presenca_encontro').select('encontro_id, presentes, faltas'),
-  ]);
-  if (error) throw new Error(error.message);
+  const hoje = hojeISO();
+  const temSucesso = podeSetor(perfil, 'sucesso');
 
-  const agora = new Date();
-  const lista = (clientes || []).map((c) => ({ c, r: resumoEncontros(c, encontros || [], presencaCliente || [], agora) }));
+  const consultas = [
+    perfil.semMigracao ? Promise.resolve({ data: [] }) : supabase.from('tarefas').select('setor, status, prazo, responsavel'),
+    temSucesso ? supabase.from('encontros').select('produto, titulo, data').gt('data', new Date().toISOString()).order('data').limit(1) : Promise.resolve({ data: [] }),
+    perfil.admin && !perfil.semMigracao ? supabase.from('equipe').select('user_id, nome, papel').order('nome') : Promise.resolve({ data: [] }),
+    perfil.admin && !perfil.semMigracao ? supabase.from('equipe_setores').select('user_id, setor') : Promise.resolve({ data: [] }),
+  ];
+  const [{ data: tarefas }, { data: proximos }, { data: pessoas }, { data: acessos }] = await Promise.all(consultas);
 
-  const filtrada = lista.filter(({ r }) => {
-    if (filtro === 'presentes') return r.ultimoTipo === 'ok';
-    if (filtro === 'faltaram') return r.ultimoTipo === 'falta';
-    return true;
-  });
-
-  // KPIs
-  const ativos = lista.length;
-  const emOnboarding = lista.filter(({ c }) => c.status === 'onboarding').length;
-  const futuros = (encontros || []).filter((e) => new Date(e.data) > agora);
-  const proximo = futuros[0];
-  const resumoPorEncontro = Object.fromEntries((porEncontro || []).map((p) => [p.encontro_id, p]));
-  const passadosComChamada = (encontros || []).filter((e) => new Date(e.data) <= agora && resumoPorEncontro[e.id]);
-  const ultimoEnc = passadosComChamada[passadosComChamada.length - 1];
-  let presencaPct = null;
-  if (ultimoEnc) {
-    const { presentes, faltas } = resumoPorEncontro[ultimoEnc.id];
-    const total = Number(presentes) + Number(faltas);
-    presencaPct = total ? Math.round((Number(presentes) / total) * 100) : null;
-  }
-
-  // Alertas
-  const alertas = [];
-  lista.forEach(({ c, r }) => {
-    if (r.faltasSeguidas >= 2) alertas.push({ tag: 'Presença', cor: 'amber', texto: `${c.nome} (${c.empresa}) faltou ${r.faltasSeguidas} encontros seguidos`, id: c.id });
-    if (c.status === 'ativo' && r.contratados > 0 && r.saldo === 0) alertas.push({ tag: 'Renovação', cor: 'green', texto: `${c.nome} não tem mais encontros no saldo`, id: c.id });
-    if (c.status === 'onboarding' && !c.responsavel) alertas.push({ tag: 'Onboarding', cor: 'violet', texto: `${c.nome}: onboarding sem responsável`, id: c.id });
-  });
-  const semAcesso = semAcessoTotal || 0;
-  if (semAcesso) alertas.push({ tag: 'Acesso', cor: 'blue', texto: `${semAcesso} pessoa(s) do time dos clientes com acesso pendente` });
-
-  const proximosPorProduto = PRODUTOS.map((p) => ({ p, e: futuros.find((e) => e.produto === p) }));
+  const lista = tarefas || [];
+  const minhas = lista.filter((t) => t.responsavel === perfil.id && t.status !== 'Feito');
+  const minhasAtrasadas = minhas.filter((t) => atrasada(t, hoje)).length;
+  const minhasHoje = minhas.filter((t) => t.prazo === hoje).length;
+  const proximo = (proximos || [])[0];
+  const mapaAcessos = Object.fromEntries((acessos || []).map((a) => [a.user_id + ':' + a.setor, true]));
+  const primeiroNome = (perfil.nome || '').split(' ')[0];
 
   return (
     <>
       <div className="topo anim">
         <div>
-          <span className="eyebrow">Visão do time · todos os clientes</span>
-          <h1 className="titulo">Painel geral</h1>
+          <span className="eyebrow" style={{ textTransform: 'capitalize' }}>
+            {new Date().toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', weekday: 'long', day: 'numeric', month: 'long' })}
+          </span>
+          <h1 className="titulo">{saudacao()}, {primeiroNome}</h1>
         </div>
-        <div className="linha">
-          <Link href="/encontros" className="btn btn-sec">Fazer chamada</Link>
-          <Link href="/clientes/novo" className="btn">+ Novo cliente</Link>
-        </div>
+        <Link href="/minhas-tarefas" className="btn">Ver minhas tarefas</Link>
       </div>
 
-      <div className="grid-kpi">
-        <div className="kpi anim anim-1">
-          <span className="icone t-blue"><Icone nome="pessoas" tamanho={20} /></span>
-          <span className="muted">Clientes ativos</span>
-          <span className="valor">{ativos}</span>
-        </div>
-        <div className="kpi anim anim-2">
-          <span className="icone t-violet"><Icone nome="check" tamanho={20} /></span>
-          <span className="muted">Em onboarding</span>
-          <span className="valor">{emOnboarding}</span>
-        </div>
-        <div className="kpi anim anim-3">
-          <span className="icone t-amber"><Icone nome="calendario" tamanho={20} /></span>
-          <span className="muted">Próximo encontro</span>
-          <span className="valor" style={{ fontSize: proximo ? 24 : 34 }}>{proximo ? fmtDataHora(proximo.data) : '—'}</span>
-          <span className="small muted">{proximo ? `${proximo.produto} · ${proximo.titulo}` : 'Nenhum agendado'}</span>
-        </div>
-        <div className="kpi anim anim-4">
-          <span className="icone t-green"><Icone nome="presenca" tamanho={20} /></span>
-          <span className="muted">Presença no último encontro</span>
-          <span className="valor" style={{ color: 'var(--verde)' }}>{presencaPct === null ? '—' : presencaPct + '%'}</span>
-          {presencaPct !== null ? (
-            <div className="barra"><span className="s-green" style={{ width: presencaPct + '%' }} /></div>
-          ) : (
-            <span className="small muted">Nenhuma chamada feita ainda</span>
-          )}
-        </div>
+      <div className="grid-kpi anim anim-1">
+        <Link href="/minhas-tarefas" className="kpi" style={{ color: 'var(--texto)' }}>
+          <span className="muted">Minhas tarefas abertas</span>
+          <span className="valor">{minhas.length}</span>
+        </Link>
+        <Link href="/minhas-tarefas" className="kpi" style={{ color: 'var(--texto)', ...(minhasAtrasadas ? { background: 'rgba(240,134,110,0.08)', borderColor: 'rgba(240,134,110,0.25)' } : {}) }}>
+          <span className="muted">Atrasadas</span>
+          <span className="valor" style={{ color: minhasAtrasadas ? 'var(--coral)' : 'var(--texto)' }}>{minhasAtrasadas}</span>
+        </Link>
+        <Link href="/minhas-tarefas" className="kpi" style={{ color: 'var(--texto)' }}>
+          <span className="muted">Vencem hoje</span>
+          <span className="valor">{minhasHoje}</span>
+        </Link>
+        {temSucesso ? (
+          <Link href="/encontros" className="kpi" style={{ color: 'var(--texto)' }}>
+            <span className="muted">Próximo encontro</span>
+            <span className="valor" style={{ fontSize: 22 }}>{proximo ? fmtDataHora(proximo.data) : 'Sem data'}</span>
+            <span className="small muted">{proximo ? `${proximo.produto} · ${proximo.titulo}` : 'Cadastre em Encontros'}</span>
+          </Link>
+        ) : null}
       </div>
 
-      <section className="card anim anim-2">
-        <div className="entre">
-          <h2 className="h2">Clientes</h2>
-          <div className="segmentos" role="group" aria-label="Filtrar pelo último encontro">
-            <Link href="/" className={filtro === 'todos' ? 'ativo' : ''}>Todos</Link>
-            <Link href="/?ultimo=presentes" className={filtro === 'presentes' ? 'ativo' : ''}>Presentes</Link>
-            <Link href="/?ultimo=faltaram" className={filtro === 'faltaram' ? 'ativo' : ''}>Faltaram</Link>
-          </div>
-        </div>
-        {filtrada.length === 0 ? (
-          <div className="vazio">
-            {lista.length === 0 ? (
-              <>Nenhum cliente cadastrado ainda. <Link href="/clientes/novo">Cadastrar o primeiro</Link></>
+      <section className="pilha anim anim-2">
+        <h2 className="h2">Setores</h2>
+        <div className="grid-auto" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))' }}>
+          {SETORES.map((s) => {
+            const tem = podeSetor(perfil, s.slug);
+            const doSetor = lista.filter((t) => t.setor === s.slug && t.status !== 'Feito');
+            const atr = doSetor.filter((t) => atrasada(t, hoje)).length;
+            const href = s.slug === 'sucesso' ? '/sucesso' : `/setor/${s.slug}`;
+            const conteudo = (
+              <>
+                <span className="entre" style={{ gap: 10 }}>
+                  <span className={'sigla t-' + s.cor} style={{ width: 38, height: 38, flexBasis: 38, borderRadius: 11, fontSize: 13 }}>{s.sigla}</span>
+                  <span className={'pill ' + (tem ? 't-green' : 't-gray')}>{tem ? 'Com acesso' : 'Sem acesso'}</span>
+                </span>
+                <span style={{ fontSize: 17, fontWeight: 700 }}>{s.nome}</span>
+                <span className="small muted" style={{ lineHeight: 1.45 }}>{s.desc}</span>
+                {tem ? (
+                  <span className="linha" style={{ gap: 8 }}>
+                    <span className="pill t-gray">{doSetor.length} {doSetor.length === 1 ? 'tarefa aberta' : 'tarefas abertas'}</span>
+                    {atr ? <span className="pill t-coral">{atr} {atr === 1 ? 'atrasada' : 'atrasadas'}</span> : null}
+                  </span>
+                ) : (
+                  <span className="small muted">Peça acesso ao administrador.</span>
+                )}
+              </>
+            );
+            return tem ? (
+              <Link key={s.slug} href={href} className="card" style={{ color: 'var(--texto)', gap: 10 }}>{conteudo}</Link>
             ) : (
-              'Nenhum cliente neste filtro.'
-            )}
-          </div>
-        ) : (
-          <div className="tabela-box">
-            <table className="tabela cartoes">
-              <thead>
-                <tr>
-                  <th>Cliente</th>
-                  <th>Produto</th>
-                  <th>Etapa</th>
-                  <th>Responsável</th>
-                  <th>Encontros</th>
-                  <th>Último encontro</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtrada.map(({ c, r }) => {
-                  const pct = r.contratados ? Math.min(100, Math.round((r.usados / r.contratados) * 100)) : 0;
-                  const etapa = c.status === 'onboarding' ? ETAPAS[c.etapa_onboarding]?.nome || 'Onboarding' : 'Encontros';
-                  return (
-                    <tr key={c.id}>
-                      <td className="principal">
-                        <Link href={`/clientes/${c.id}`} className="linha" style={{ color: 'var(--texto)', flexWrap: 'nowrap' }}>
-                          <span className={'av t-' + corAvatar(c.id)}>{iniciais(c.nome)}</span>
-                          <span className="pilha-p" style={{ gap: 2 }}>
-                            <span style={{ fontWeight: 600 }}>{c.nome}</span>
-                            <span className="small muted">{c.empresa}</span>
-                          </span>
-                        </Link>
-                      </td>
-                      <td data-label="Produto"><span className={'pill t-' + COR_PRODUTO[c.produto]}>{c.produto}</span></td>
-                      <td data-label="Etapa" style={{ color: 'var(--texto2)' }}>{etapa}</td>
-                      <td data-label="Responsável" className="muted">{c.responsavel || '—'}</td>
-                      <td data-label="Encontros" style={{ minWidth: 130 }}>
-                        <div className="pilha-p">
-                          <span style={{ fontSize: 13 }}>
-                            {r.usados} de {r.contratados} · saldo {r.saldo}
-                          </span>
-                          <div className="barra" style={{ height: 4 }}>
-                            <span className={'s-' + COR_PRODUTO[c.produto]} style={{ width: pct + '%' }} />
-                          </div>
-                        </div>
-                      </td>
-                      <td data-label="Último encontro">
-                        <span className={'pill ' + (r.ultimoTipo === 'ok' ? 't-green' : r.ultimoTipo === 'falta' ? 't-amber' : 't-gray')}>{r.ultimo}</span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
+              <div key={s.slug} className="card" style={{ gap: 10, opacity: 0.55 }}>{conteudo}</div>
+            );
+          })}
+        </div>
       </section>
 
-      <div className="grid-lado anim anim-3">
-        <section className="card">
-          <h2 className="h2">Atenção do time</h2>
-          <div className="lista-alerta">
-            {alertas.length === 0 ? (
-              <div>Nada pendente por aqui.</div>
-            ) : (
-              alertas.map((a, i) => (
-                <div key={i}>
-                  <span className={'tag t-' + a.cor}>{a.tag}</span>
-                  {a.id ? <Link href={`/clientes/${a.id}`} style={{ color: 'var(--texto2)' }}>{a.texto}</Link> : <span>{a.texto}</span>}
-                </div>
-              ))
-            )}
-          </div>
-        </section>
-        <section className="card">
-          <h2 className="h2">Próximos encontros</h2>
-          <div className="lista-alerta">
-            {proximosPorProduto.map(({ p, e }) => (
-              <div key={p} style={{ justifyContent: 'space-between', alignItems: 'center' }}>
-                <span className={'pill t-' + COR_PRODUTO[p]} style={{ fontSize: 13 }}>{p}</span>
-                {e ? <Link href={`/encontros/${e.id}`} className="muted">{fmtDataHora(e.data)}</Link> : <span className="muted">Sem data</span>}
-              </div>
-            ))}
-          </div>
-          <Link href="/encontros" className="small" style={{ fontWeight: 600 }}>Ver todos os encontros</Link>
-        </section>
-      </div>
+      {perfil.admin && !perfil.semMigracao ? <AcessoMatriz pessoas={pessoas || []} acessos={mapaAcessos} /> : null}
     </>
   );
 }
