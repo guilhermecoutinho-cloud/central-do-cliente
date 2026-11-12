@@ -9,7 +9,6 @@ import { COR_PRODUTO, PRODUTOS, corAvatar, fmtDataHora, iniciais } from '@/lib/u
 import Icone from '@/components/Icone';
 import SemAcesso from '@/components/SemAcesso';
 
-const VAR = (cor) => `var(--${cor})`;
 const SETOR = Object.fromEntries(SETORES.map((s) => [s.slug, s]));
 
 export default async function Lideranca() {
@@ -149,7 +148,7 @@ export default async function Lideranca() {
 
                 <div className="spark" aria-label={'Entregas nas últimas 8 semanas: ' + a.r.semanas.map((s) => s.n).join(', ')} role="img">
                   {a.r.semanas.map((s, i) => (
-                    <span key={s.ini} style={{ height: Math.max(3, (s.n / maior) * 34) + 'px', background: VAR(a.cor), opacity: s.atual ? 1 : 0.4, animationDelay: i * 0.03 + 's' }} />
+                    <span key={s.ini} style={{ height: Math.max(3, (s.n / maior) * 34) + 'px', background: s.atual ? 'var(--verde)' : 'var(--borda-forte)', animationDelay: i * 0.03 + 's' }} />
                   ))}
                 </div>
 
@@ -180,16 +179,13 @@ export default async function Lideranca() {
             {ritmo.semanas.map((s, i) => (
               <div key={s.ini} className={'graf-col' + (s.atual ? ' atual' : '')}>
                 <span className="n">{s.n}</span>
-                <span className="b pilha-b" style={{ height: Math.max(4, (s.n / ritmo.maior) * 120) + 'px', animationDelay: i * 0.04 + 's' }}>
-                  {SETORES.map((st) => (s.porSetor[st.slug] ? <span key={st.slug} style={{ flex: s.porSetor[st.slug], background: VAR(st.cor) }} title={`${st.nome}: ${s.porSetor[st.slug]}`} /> : null))}
-                </span>
+                <span
+                  className="b"
+                  style={{ height: Math.max(4, (s.n / ritmo.maior) * 120) + 'px', animationDelay: i * 0.04 + 's' }}
+                  title={SETORES.filter((st) => s.porSetor[st.slug]).map((st) => `${st.nome}: ${s.porSetor[st.slug]}`).join(' · ')}
+                />
                 <span className="r">{s.atual ? 'Esta' : s.rotulo}</span>
               </div>
-            ))}
-          </div>
-          <div className="linha" style={{ gap: 6 }}>
-            {SETORES.map((s) => (
-              <span key={s.slug} className={'pill t-' + s.cor}>{s.nome}</span>
             ))}
           </div>
         </section>
