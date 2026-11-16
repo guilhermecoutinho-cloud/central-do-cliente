@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { ETAPAS, totalTarefas } from '@/lib/onboarding';
 import { COR_PRODUTO, PRODUTOS } from '@/lib/util';
+import ListaIncremental from '@/components/ListaIncremental';
 
 export default async function OnboardingQuadro() {
   const supabase = createClient();
@@ -104,6 +105,7 @@ export default async function OnboardingQuadro() {
               <span className="small muted">{lista.length}</span>
             </div>
             {lista.length === 0 ? <span className="vazio">Nenhum cliente</span> : null}
+            <ListaIncremental>
             {lista.map((c) => {
               const feitas = feitasPorCliente[c.id] || 0;
               const pct = Math.round((feitas / total) * 100);
@@ -119,13 +121,16 @@ export default async function OnboardingQuadro() {
                     <span className={'pill t-' + COR_PRODUTO[c.produto]}>{c.produto}</span>
                     <span className="small muted">{c.responsavel || 'sem resp.'}</span>
                   </span>
-                  <span className="pilha-p">
-                    <span className="small" style={{ color: 'var(--texto3)' }}>{feitas} de {total} tarefas</span>
-                    <span className="barra" style={{ height: 4 }}><span className={'s-' + et.cor} style={{ width: pct + '%' }} /></span>
-                  </span>
+                  {c.status === 'onboarding' ? (
+                    <span className="pilha-p">
+                      <span className="small" style={{ color: 'var(--texto3)' }}>{feitas} de {total} tarefas</span>
+                      <span className="barra" style={{ height: 4 }}><span className={'s-' + et.cor} style={{ width: pct + '%' }} /></span>
+                    </span>
+                  ) : null}
                 </Link>
               );
             })}
+            </ListaIncremental>
           </section>
         ))}
       </div>

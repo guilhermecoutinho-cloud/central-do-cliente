@@ -715,3 +715,9 @@ a.card.ferramenta:hover { color: var(--texto); }
 .linha-aluno:last-child { border-bottom: 0; }
 .linha-aluno:hover { background: rgba(255, 255, 255, .03); color: var(--texto); }
 @media (max-width: 700px) { .faixa-previa { padding: 10px 16px; } }
+
+/* Lista que carrega de 10 em 10 e rola por dentro (colunas do onboarding) */
+.lista-rolavel { display: flex; flex-direction: column; gap: 10px; max-height: 640px; overflow-y: auto; margin-right: -6px; padding-right: 6px; overscroll-behavior: contain; }
+.lista-rolavel:empty { display: none; }
+.lista-mais { display: flex; justify-content: center; padding: 6px 0 2px; }
+@media (max-width: 760px) { .lista-rolavel { max-height: 480px; } }
