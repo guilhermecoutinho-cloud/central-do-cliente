@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { ETAPAS, totalTarefas } from '@/lib/onboarding';
-import { COR_PRODUTO, corAvatar, iniciais } from '@/lib/util';
+import { COR_PRODUTO, PRODUTOS } from '@/lib/util';
 
 export default async function OnboardingQuadro() {
   const supabase = createClient();
@@ -21,6 +21,16 @@ export default async function OnboardingQuadro() {
     clientes: (clientes || []).filter((c) => (c.status === 'ativo' ? ultima : Math.min(c.etapa_onboarding, ultima)) === i),
   }));
 
+  // Números do topo: total, por produto e por etapa
+  const lista = clientes || [];
+  const totalClientes = lista.length;
+  const emOnboarding = lista.filter((c) => c.status === 'onboarding').length;
+  const produtos = [...PRODUTOS, ...new Set(lista.map((c) => c.produto).filter((p) => !PRODUTOS.includes(p)))];
+  const porProduto = produtos.map((p) => ({ nome: p, n: lista.filter((c) => c.produto === p).length }));
+  const porEtapa = colunas.map(({ et, clientes: l }) => ({ nome: et.nome, n: l.length }));
+  const maiorProduto = Math.max(1, ...porProduto.map((x) => x.n));
+  const maiorEtapa = Math.max(1, ...porEtapa.map((x) => x.n));
+
   return (
     <>
       <div className="topo anim">
@@ -31,7 +41,58 @@ export default async function OnboardingQuadro() {
         <Link href="/clientes/novo" className="btn">+ Cliente novo</Link>
       </div>
 
-      <div className="card anim anim-1" style={{ padding: '14px 18px', color: 'var(--texto3)' }}>
+      <div className="grid-kpi anim anim-1">
+        <div className="kpi">
+          <span className="muted">Clientes ativos</span>
+          <span className="valor">{totalClientes}</span>
+          <span className="small muted">todos os produtos</span>
+        </div>
+        <div className="kpi">
+          <span className="muted">Em onboarding</span>
+          <span className="valor">{emOnboarding}</span>
+          <span className="small muted">ainda nas etapas iniciais</span>
+        </div>
+        <div className="kpi">
+          <span className="muted">Já nos encontros</span>
+          <span className="valor">{totalClientes - emOnboarding}</span>
+          <span className="small muted">onboarding concluído</span>
+        </div>
+      </div>
+
+      <div className="grid-painel anim anim-1">
+        <section className="card">
+          <div className="entre">
+            <h2 className="h2">Clientes por produto</h2>
+            <span className="small muted">{totalClientes} no total</span>
+          </div>
+          <div className="graf-barras">
+            {porProduto.map((x, i) => (
+              <div key={x.nome} className="graf-barra">
+                <span className="rot">{x.nome}</span>
+                <span className="trilho"><span style={{ width: (x.n / maiorProduto) * 100 + '%', animationDelay: i * 0.05 + 's' }} /></span>
+                <span className="num">{x.n}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+        <section className="card">
+          <div className="entre">
+            <h2 className="h2">Clientes por etapa</h2>
+            <span className="small muted">colunas do quadro abaixo</span>
+          </div>
+          <div className="graf-barras">
+            {porEtapa.map((x, i) => (
+              <div key={x.nome} className="graf-barra">
+                <span className="rot">{x.nome}</span>
+                <span className="trilho"><span style={{ width: (x.n / maiorEtapa) * 100 + '%', animationDelay: i * 0.05 + 's' }} /></span>
+                <span className="num">{x.n}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <div className="card anim anim-2" style={{ padding: '14px 18px', color: 'var(--texto3)' }}>
         Cada cliente é um cartão. Ele anda pelas etapas e cada etapa tem o seu checklist. Se a responsável não puder, quem assumir abre o cartão e continua de onde parou.
       </div>
 
