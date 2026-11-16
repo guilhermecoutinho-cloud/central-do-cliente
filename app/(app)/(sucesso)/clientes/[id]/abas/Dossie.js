@@ -74,7 +74,7 @@ export default async function AbaDossie({ c, membros, searchParams }) {
               <div className="campo">
                 <label htmlFor="d-prod">Produto</label>
                 <select id="d-prod" name="produto" defaultValue={c.produto}>
-                  {PRODUTOS.map((p) => <option key={p} value={p}>{p}</option>)}
+                  {(PRODUTOS.includes(c.produto) ? PRODUTOS : [...PRODUTOS, c.produto]).map((p) => <option key={p} value={p}>{p}</option>)}
                 </select>
               </div>
               <div className="campo"><label htmlFor="d-ini">Data de início</label><input id="d-ini" name="data_inicio" type="date" defaultValue={c.data_inicio || ''} /></div>

@@ -45,7 +45,7 @@ export default async function Encontros({ searchParams }) {
     <>
       <div className="topo anim">
         <div>
-          <span className="eyebrow">MGA · Ambição · Mentoria · Imersão</span>
+          <span className="eyebrow">MGA · Ambição · GI · GC · Sniper</span>
           <h1 className="titulo">Encontros e presença</h1>
         </div>
         <div className="segmentos" role="group" aria-label="Filtrar por produto">

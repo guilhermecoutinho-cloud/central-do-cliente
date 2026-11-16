@@ -38,6 +38,9 @@ export default async function AppLayout({ children }) {
   }
 
   if (perfil.semEquipe) {
+    // Pessoa do time de um cliente (aluno): vai para a área do aluno
+    const { data: aluno } = await createClient().from('membros').select('id').eq('user_id', perfil.id).maybeSingle();
+    if (aluno) redirect('/aluno');
     return (
       <Aviso titulo="Seu usuário ainda não foi liberado">
         <p className="muted" style={{ margin: 0 }}>

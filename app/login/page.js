@@ -1,6 +1,6 @@
 import { entrar } from './actions';
 
-export const metadata = { title: 'Entrar · Central do Cliente' };
+export const metadata = { title: 'Entrar · Capital Upgrade' };
 
 export default function Login({ searchParams }) {
   const erro = searchParams?.erro;
@@ -9,7 +9,7 @@ export default function Login({ searchParams }) {
       <div className="caixa anim" style={{ maxWidth: 420 }}>
         <img src="/logo-caup.png" alt="Capital Upgrade Campinas" className="logo" width="180" height="50" style={{ display: 'block', margin: '0 auto' }} />
         <div className="pilha-p" style={{ alignItems: 'center', textAlign: 'center' }}>
-          <span className="muted">Central do Cliente</span>
+          <span className="muted">Central da Empresa e Área do aluno</span>
           <h1 className="titulo-m">Entrar</h1>
         </div>
         <form action={entrar} className="card">
@@ -26,7 +26,7 @@ export default function Login({ searchParams }) {
           ) : null}
           <button type="submit" className="btn">Entrar</button>
         </form>
-        <span className="small muted" style={{ textAlign: 'center' }}>Acesso só para o time da Capital Upgrade. Peça seu usuário ao administrador.</span>
+        <span className="small muted" style={{ textAlign: 'center' }}>Para o time e os alunos da Capital Upgrade. Não tem acesso? Fale com a gente.</span>
       </div>
     </div>
   );

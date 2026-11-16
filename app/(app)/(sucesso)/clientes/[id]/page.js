@@ -10,12 +10,14 @@ import AbaEncontros from './abas/Encontros';
 import AbaDossie from './abas/Dossie';
 import AbaAcompanhamentos from './abas/Acompanhamentos';
 import AbaCashback from './abas/Cashback';
+import AbaTreinamentos from './abas/Treinamentos';
 
 const ABAS = [
   ['geral', 'Visão geral'],
   ['onboarding', 'Onboarding'],
   ['time', 'Time'],
   ['encontros', 'Encontros'],
+  ['treinamentos', 'Treinamentos'],
   ['dossie', 'Dossiê'],
   ['cashback', 'Cashback'],
   ['acompanhamentos', 'Acompanhamentos'],
@@ -79,6 +81,7 @@ export default async function FichaCliente({ params, searchParams }) {
         {aba === 'onboarding' && <AbaOnboarding {...props} />}
         {aba === 'time' && <AbaTime {...props} />}
         {aba === 'encontros' && <AbaEncontros {...props} />}
+        {aba === 'treinamentos' && <AbaTreinamentos {...props} />}
         {aba === 'dossie' && <AbaDossie {...props} />}
         {aba === 'cashback' && <AbaCashback {...props} />}
         {aba === 'acompanhamentos' && <AbaAcompanhamentos {...props} />}

@@ -95,6 +95,13 @@ Opcional: `GEMINI_MODELO` para trocar o modelo (padrão `gemini-3.5-flash-lite`)
 - Em **+ Novo cliente**, cole o bloco "Dados para matrícula". Os campos se preenchem sozinhos; escolha o produto e clique em criar.
 - Antes de rodar o SQL também funciona: os dados ficam guardados nas Observações do cliente.
 
+## Treinamentos e área do aluno
+
+- Rode **uma vez** o arquivo `supabase/area-aluno.sql` no SQL Editor. Ele troca os produtos para MGA, Ambição, GI, GC e Sniper (clientes antigos de Mentoria/Imersão continuam como estão), cria os treinamentos, os checks de quem já fez e o login do aluno.
+- **Sucesso do Cliente → Treinamentos:** suba a capa de cada treinamento (imagem em pé, 2:3) e ajuste nome e descrição.
+- **Ficha do cliente → aba Treinamentos:** clique na capa para marcar o que cada pessoa do time do cliente já fez. Ali também tem **Criar acesso do aluno**, que gera a senha e a mensagem pronta para mandar no WhatsApp (precisa da `SUPABASE_SERVICE_ROLE_KEY` na Vercel).
+- O aluno entra pelo mesmo endereço (`/login`) e cai na **Área do aluno**: vê as capas, o que já concluiu e pode trocar a senha. Ele não vê nada da Central.
+
 ## Cashback e gamificação
 
 - Quem já tinha o banco criado: rode **uma vez** o arquivo `supabase/cashback.sql` no SQL Editor. Quem for criar do zero, o `schema.sql` já inclui.
