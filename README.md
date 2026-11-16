@@ -102,6 +102,12 @@ Opcional: `GEMINI_MODELO` para trocar o modelo (padrão `gemini-3.5-flash-lite`)
 - **Ficha do cliente → aba Treinamentos:** clique na capa para marcar o que cada pessoa do time do cliente já fez. Ali também tem **Criar acesso do aluno**, que gera a senha e a mensagem pronta para mandar no WhatsApp (precisa da `SUPABASE_SERVICE_ROLE_KEY` na Vercel).
 - O aluno entra pelo mesmo endereço (`/login`) e cai na **Área do aluno**: vê as capas, o que já concluiu e pode trocar a senha. Ele não vê nada da Central.
 
+### Área do aluno, parte 2 (Encontros, Ferramentas, Conexões e NPS)
+
+- Rode **uma vez** o arquivo `supabase/area-aluno-2.sql` (depois do `area-aluno.sql`).
+- Time: **Sucesso do Cliente → Área do aluno** tem as abas Treinamentos, Ferramentas (links liberados para os alunos), Conexões (ocultar/excluir cadastros, cadastrar parceiros) e NPS (nota, distribuição e comentários).
+- Aluno: abas Treinamentos, Próximos encontros (do produto dele; o link aparece se o acesso estiver liberado na aba Time), Ferramentas, Conexões (fornecedores, clientes e parceiros estratégicos, e o próprio cadastro) e Avaliar (NPS de 0 a 10).
+
 ## Cashback e gamificação
 
 - Quem já tinha o banco criado: rode **uma vez** o arquivo `supabase/cashback.sql` no SQL Editor. Quem for criar do zero, o `schema.sql` já inclui.

@@ -129,3 +129,141 @@ export async function salvarTreinamento({ id, nome, descricao, capa_url, ativo }
   revalidatePath('/treinamentos');
   revalidatePath('/aluno');
 }
+
+// ---------------------------------------------------------------- Ferramentas (time)
+
+const urlBoa = (u) => {
+  const t = String(u || '').trim();
+  if (!t) return '';
+  return /^https?:\/\//i.test(t) ? t : 'https://' + t;
+};
+
+export async function criarFerramenta(formData) {
+  await exigirSucesso();
+  const titulo = String(formData.get('titulo') || '').trim().slice(0, 120);
+  const url = urlBoa(formData.get('url'));
+  if (!titulo || !url) throw new Error('Preencha o nome e o link da ferramenta.');
+  const supabase = createClient();
+  const { error } = await supabase.from('aluno_ferramentas').insert({
+    titulo,
+    url,
+    descricao: String(formData.get('descricao') || '').trim().slice(0, 400) || null,
+    produto: String(formData.get('produto') || '') || null,
+  });
+  if (error) throw new Error(error.message);
+  revalidatePath('/treinamentos');
+  revalidatePath('/aluno');
+}
+
+export async function alternarFerramenta(formData) {
+  await exigirSucesso();
+  const supabase = createClient();
+  const { error } = await supabase.from('aluno_ferramentas').update({ ativo: formData.get('ativo') === '1' }).eq('id', formData.get('id'));
+  if (error) throw new Error(error.message);
+  revalidatePath('/treinamentos');
+  revalidatePath('/aluno');
+}
+
+export async function removerFerramenta(formData) {
+  await exigirSucesso();
+  const supabase = createClient();
+  const { error } = await supabase.from('aluno_ferramentas').delete().eq('id', formData.get('id'));
+  if (error) throw new Error(error.message);
+  revalidatePath('/treinamentos');
+  revalidatePath('/aluno');
+}
+
+// ---------------------------------------------------------------- Conexões
+
+const TIPOS_CONEXAO = ['fornecedor', 'cliente', 'parceiro'];
+
+function dadosConexao(formData) {
+  const tipo = String(formData.get('tipo') || '');
+  if (!TIPOS_CONEXAO.includes(tipo)) throw new Error('Escolha se é fornecedor, cliente ou parceiro.');
+  const campo = (k, max = 200) => String(formData.get(k) || '').trim().slice(0, max) || null;
+  return {
+    tipo,
+    empresa: campo('empresa', 120),
+    segmento: campo('segmento', 80),
+    descricao: campo('descricao', 600),
+    whatsapp: campo('whatsapp', 30),
+    email: campo('email', 120),
+    site: formData.get('site') ? urlBoa(formData.get('site')) : null,
+  };
+}
+
+// Time cadastra (ex.: um parceiro estratégico da Capital Upgrade)
+export async function criarConexao(formData) {
+  await exigirSucesso();
+  const nome = String(formData.get('nome') || '').trim().slice(0, 120);
+  if (!nome) throw new Error('Preencha o nome.');
+  const supabase = createClient();
+  const { error } = await supabase.from('conexoes').insert({ nome, ...dadosConexao(formData) });
+  if (error) throw new Error(error.message);
+  revalidatePath('/treinamentos');
+  revalidatePath('/aluno');
+}
+
+export async function alternarConexao(formData) {
+  await exigirSucesso();
+  const supabase = createClient();
+  const { error } = await supabase.from('conexoes').update({ ativo: formData.get('ativo') === '1' }).eq('id', formData.get('id'));
+  if (error) throw new Error(error.message);
+  revalidatePath('/treinamentos');
+  revalidatePath('/aluno');
+}
+
+export async function removerConexao(formData) {
+  await exigirSucesso();
+  const supabase = createClient();
+  const { error } = await supabase.from('conexoes').delete().eq('id', formData.get('id'));
+  if (error) throw new Error(error.message);
+  revalidatePath('/treinamentos');
+  revalidatePath('/aluno');
+}
+
+// ---------------------------------------------------------------- Ações do próprio aluno
+
+async function meuCadastro(supabase) {
+  const { data } = await supabase.rpc('meu_cadastro_aluno');
+  const eu = Array.isArray(data) ? data[0] : data;
+  if (!eu) throw new Error('Seu acesso de aluno não foi encontrado.');
+  return eu;
+}
+
+export async function salvarMinhaConexao(formData) {
+  const supabase = createClient();
+  const eu = await meuCadastro(supabase);
+  const dados = { ...dadosConexao(formData), nome: eu.nome };
+  const { data: atual } = await supabase.from('conexoes').select('id').eq('membro_id', eu.membro_id).maybeSingle();
+  const { error } = atual
+    ? await supabase.from('conexoes').update(dados).eq('id', atual.id)
+    : await supabase.from('conexoes').insert({ ...dados, membro_id: eu.membro_id });
+  if (error) throw new Error(error.message);
+  revalidatePath('/aluno');
+  revalidatePath('/treinamentos');
+}
+
+export async function removerMinhaConexao() {
+  const supabase = createClient();
+  const eu = await meuCadastro(supabase);
+  const { error } = await supabase.from('conexoes').delete().eq('membro_id', eu.membro_id);
+  if (error) throw new Error(error.message);
+  revalidatePath('/aluno');
+  revalidatePath('/treinamentos');
+}
+
+export async function responderNps(formData) {
+  const supabase = createClient();
+  const eu = await meuCadastro(supabase);
+  const nota = Number(formData.get('nota'));
+  if (!Number.isInteger(nota) || nota < 0 || nota > 10) throw new Error('Escolha uma nota de 0 a 10.');
+  const { error } = await supabase.from('nps_respostas').insert({
+    membro_id: eu.membro_id,
+    nota,
+    comentario: String(formData.get('comentario') || '').trim().slice(0, 2000) || null,
+  });
+  if (error) throw new Error(error.message);
+  revalidatePath('/aluno');
+  revalidatePath('/treinamentos');
+}
