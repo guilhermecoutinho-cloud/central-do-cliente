@@ -63,6 +63,12 @@ export default function Sidebar({ nome, admin, setores, atrasadas }) {
           </Link>
         ) : null}
         {admin ? (
+          <Link href="/aluno" className="nav-a">
+            <Icone nome="pessoa" />
+            Ver como aluno
+          </Link>
+        ) : null}
+        {admin ? (
           <Link href="/claude" className={'nav-a' + (path === '/claude' ? ' ativo' : '')}>
             <Icone nome="mais" />
             Conectar ao Claude

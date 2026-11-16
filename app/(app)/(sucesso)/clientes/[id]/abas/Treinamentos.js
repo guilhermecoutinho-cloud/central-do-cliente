@@ -55,6 +55,7 @@ export default async function AbaTreinamentos({ c, membros }) {
                 <span className="pilha-p" style={{ gap: 2 }}>
                   <span style={{ fontWeight: 600 }}>{m.nome}</span>
                   <span className="small muted">{n} de {lista.length} treinamentos feitos{m.cargo ? ' · ' + m.cargo : ''}</span>
+                  <Link href={`/aluno?ver=${m.id}`} className="small" style={{ fontWeight: 600 }}>Ver como este aluno</Link>
                 </span>
               </span>
               <AcessoAluno clienteId={c.id} membro={m} site={site} />

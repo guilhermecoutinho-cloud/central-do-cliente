@@ -256,10 +256,13 @@ export default async function AreaDoAlunoTime({ searchParams }) {
           <h1 className="titulo">Área do aluno</h1>
           <span className="small" style={{ color: 'var(--texto3)' }}>O que os alunos veem quando entram: treinamentos, ferramentas, conexões e a avaliação (NPS).</span>
         </div>
+        <div className="linha">
+        <Link href="/aluno" className="btn btn-sec">Ver como aluno</Link>
         <div className="segmentos" role="group" aria-label="Partes da área do aluno">
           {ABAS.map(([k, nome]) => (
             <Link key={k} href={k === 'treinamentos' ? '/treinamentos' : `/treinamentos?aba=${k}`} className={aba === k ? 'ativo' : ''}>{nome}</Link>
           ))}
+        </div>
         </div>
       </div>
       {aba === 'ferramentas' ? <AbaFerramentas supabase={supabase} /> : null}

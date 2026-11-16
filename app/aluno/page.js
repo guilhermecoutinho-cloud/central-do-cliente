@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { usuarioId } from '@/lib/supabase/usuario';
+import { getPerfil, podeSetor } from '@/lib/perfil';
 import { sair } from '@/app/login/actions';
 import { removerMinhaConexao, responderNps, salvarMinhaConexao } from '@/app/actions-aluno';
 import { TIPOS_CONEXAO, linkWhatsApp } from '@/lib/aluno';
@@ -153,7 +154,7 @@ function CartaoConexao({ c }) {
   );
 }
 
-function AbaConexoes({ conexoes, minha, filtro, eu }) {
+function AbaConexoes({ conexoes, minha, filtro, eu, previa, base }) {
   const tipo = TIPOS_CONEXAO.find((t) => t.tipo === filtro) || TIPOS_CONEXAO[0];
   const lista = conexoes.filter((c) => c.tipo === tipo.tipo && c.ativo);
   return (
@@ -166,7 +167,7 @@ function AbaConexoes({ conexoes, minha, filtro, eu }) {
           </div>
           <div className="segmentos" role="group" aria-label="Tipo de conexão">
             {TIPOS_CONEXAO.map((t) => (
-              <Link key={t.tipo} href={`/aluno?aba=conexoes&tipo=${t.tipo}`} className={t.tipo === tipo.tipo ? 'ativo' : ''}>
+              <Link key={t.tipo} href={`${base}aba=conexoes&tipo=${t.tipo}`} className={t.tipo === tipo.tipo ? 'ativo' : ''}>
                 {t.nome} ({conexoes.filter((c) => c.tipo === t.tipo && c.ativo).length})
               </Link>
             ))}
@@ -201,20 +202,21 @@ function AbaConexoes({ conexoes, minha, filtro, eu }) {
           <div className="campo inteiro"><label htmlFor="c-desc">O que você oferece ou procura</label><textarea id="c-desc" name="descricao" rows={3} defaultValue={minha?.descricao || ''} /></div>
         </div>
         <div className="linha">
-          <button type="submit" className="btn">{minha ? 'Salvar' : 'Publicar nas conexões'}</button>
+          <button type="submit" className="btn" disabled={previa}>{minha ? 'Salvar' : 'Publicar nas conexões'}</button>
+          {previa ? <span className="small muted">No modo de visualização nada é enviado.</span> : null}
           {minha && !minha.ativo ? <span className="small" style={{ color: 'var(--amber)' }}>Seu cadastro está oculto pelo time da Capital Upgrade.</span> : null}
         </div>
       </form>
       {minha ? (
         <form action={removerMinhaConexao}>
-          <button type="submit" className="btn-perigo">Sair das conexões</button>
+          <button type="submit" className="btn-perigo" disabled={previa}>Sair das conexões</button>
         </form>
       ) : null}
     </>
   );
 }
 
-function AbaAvaliar({ ultima }) {
+function AbaAvaliar({ ultima, previa }) {
   return (
     <form action={responderNps} className="card" style={{ maxWidth: 760 }}>
       <div className="pilha-p" style={{ gap: 6 }}>
@@ -238,7 +240,8 @@ function AbaAvaliar({ ultima }) {
         <textarea id="nps-com" name="comentario" rows={3} />
       </div>
       <div className="linha">
-        <button type="submit" className="btn">Enviar avaliação</button>
+        <button type="submit" className="btn" disabled={previa}>Enviar avaliação</button>
+        {previa ? <span className="small muted">No modo de visualização nada é enviado.</span> : null}
         {ultima ? <span className="small muted">Sua última nota foi {ultima.nota}, em {fmtDia(ultima.criado_em)}. Obrigado!</span> : null}
       </div>
     </form>
@@ -247,35 +250,108 @@ function AbaAvaliar({ ultima }) {
 
 // ---------------------------------------------------------------- Página
 
+// Lista para o time escolher qual aluno quer ver
+async function EscolherAluno({ supabase, q }) {
+  let consulta = supabase
+    .from('membros')
+    .select('id, nome, email, user_id, clientes!inner(nome, empresa, produto, status)')
+    .neq('clientes.status', 'encerrado')
+    .order('nome')
+    .limit(60);
+  if (q) consulta = consulta.ilike('nome', '%' + q.replace(/[%_\\]/g, '') + '%');
+  const { data: alunos } = await consulta;
+  return (
+    <div className="aluno-pagina">
+      <div className="faixa-previa">
+        <span>Ver como aluno: escolha de quem é a visão</span>
+        <Link href="/" className="btn btn-sec btn-p">Voltar para a Central</Link>
+      </div>
+      <main className="aluno-conteudo" style={{ maxWidth: 900 }}>
+        <section className="pilha" style={{ gap: 8 }}>
+          <h1 className="titulo-m">Ver a área do aluno como</h1>
+          <span className="small muted">Você vê exatamente o que a pessoa vê: treinamentos, encontros, ferramentas, conexões e avaliação. Nada é alterado.</span>
+        </section>
+        <form className="linha" action="/aluno">
+          <input className="input" name="q" defaultValue={q || ''} placeholder="Buscar pelo nome do aluno" style={{ flex: 1, minWidth: 200 }} />
+          <button type="submit" className="btn btn-sec">Buscar</button>
+        </form>
+        <section className="card" style={{ padding: 0 }}>
+          {(alunos || []).length === 0 ? (
+            <div className="vazio" style={{ margin: 16 }}>Ninguém encontrado.</div>
+          ) : (
+            (alunos || []).map((a) => (
+              <Link key={a.id} href={`/aluno?ver=${a.id}`} className="linha-aluno">
+                <span className="pilha-p" style={{ gap: 2, minWidth: 0 }}>
+                  <span style={{ fontWeight: 600 }}>{a.nome}</span>
+                  <span className="small muted">
+                    {a.clientes?.empresa && a.clientes.empresa !== a.nome ? a.clientes.empresa : a.clientes?.nome !== a.nome ? 'Time de ' + a.clientes?.nome : 'Titular'}
+                  </span>
+                </span>
+                <span className="linha" style={{ gap: 8 }}>
+                  <span className="pill t-gray">{a.clientes?.produto}</span>
+                  {a.user_id ? <span className="pill t-green">Tem acesso</span> : null}
+                </span>
+              </Link>
+            ))
+          )}
+        </section>
+      </main>
+    </div>
+  );
+}
+
 export default async function AreaDoAluno({ searchParams }) {
   const supabase = createClient();
   const id = await usuarioId(supabase);
   if (!id) redirect('/login');
 
+  // Quem é aluno vê a própria área. Quem é do time (com Sucesso do Cliente) pode "ver como" qualquer aluno.
   const { data: cadastro } = await supabase.rpc('meu_cadastro_aluno');
-  const eu = Array.isArray(cadastro) ? cadastro[0] : cadastro;
+  let eu = Array.isArray(cadastro) ? cadastro[0] : cadastro;
+  let previa = false;
+  let acessoLiberado = true;
+
   if (!eu) {
-    const { data: time } = await supabase.from('equipe').select('user_id').eq('user_id', id).maybeSingle();
-    if (time) redirect('/');
-    return <SemLiberacao />;
+    const perfil = await getPerfil();
+    if (perfil && !perfil.semEquipe && !perfil.erro) {
+      if (!podeSetor(perfil, 'sucesso')) redirect('/');
+      if (!searchParams?.ver) return <EscolherAluno supabase={supabase} q={searchParams?.q} />;
+      const { data: m } = await supabase
+        .from('membros')
+        .select('id, nome, acesso_liberado, clientes(nome, empresa, produto)')
+        .eq('id', searchParams.ver)
+        .maybeSingle();
+      if (!m) return <EscolherAluno supabase={supabase} q={searchParams?.q} />;
+      eu = { membro_id: m.id, nome: m.nome, empresa: m.clientes?.empresa, produto: m.clientes?.produto };
+      acessoLiberado = !!m.acesso_liberado;
+      previa = true;
+    } else {
+      return <SemLiberacao />;
+    }
   }
 
   const aba = ABAS.some(([k]) => k === searchParams?.aba) ? searchParams.aba : 'treinamentos';
+  const base = previa ? `/aluno?ver=${eu.membro_id}&` : '/aluno?';
+  const agoraMenos3h = new Date(Date.now() - 3 * 3600 * 1000).toISOString();
 
   // Sempre: treinamentos (para o progresso do topo). O resto só na aba aberta.
+  // Os filtros por membro valem para os dois casos: para o aluno o banco já limita ao que é dele.
   const [{ data: treinamentos }, { data: checks }, extra] = await Promise.all([
     supabase.from('treinamentos').select('id, sigla, nome, descricao, capa_url, ordem').eq('ativo', true).order('ordem'),
-    supabase.from('aluno_treinamentos').select('treinamento_id, concluido_em'),
+    supabase.from('aluno_treinamentos').select('treinamento_id, concluido_em').eq('membro_id', eu.membro_id),
     aba === 'encontros'
-      ? supabase.rpc('meus_proximos_encontros')
+      ? previa
+        ? supabase.from('encontros').select('id, produto, titulo, data, link').eq('produto', eu.produto).gt('data', agoraMenos3h).order('data').limit(12)
+        : supabase.rpc('meus_proximos_encontros')
       : aba === 'ferramentas'
-        ? supabase.from('aluno_ferramentas').select('id, titulo, descricao, url, produto').order('ordem').order('criado_em')
+        ? supabase.from('aluno_ferramentas').select('id, titulo, descricao, url, produto').eq('ativo', true).order('ordem').order('criado_em')
         : aba === 'conexoes'
-          ? supabase.from('conexoes').select('id, membro_id, tipo, nome, empresa, segmento, descricao, whatsapp, email, site, ativo').order('criado_em', { ascending: false })
+          ? supabase.from('conexoes').select('id, membro_id, tipo, nome, empresa, segmento, descricao, whatsapp, email, site, ativo').or(`ativo.eq.true,membro_id.eq.${eu.membro_id}`).order('criado_em', { ascending: false })
           : aba === 'avaliar'
-            ? supabase.from('nps_respostas').select('nota, criado_em').order('criado_em', { ascending: false }).limit(1)
+            ? supabase.from('nps_respostas').select('nota, criado_em').eq('membro_id', eu.membro_id).order('criado_em', { ascending: false }).limit(1)
             : Promise.resolve({ data: null }),
   ]);
+  const encontros = aba === 'encontros' && previa ? (extra.data || []).map((e) => ({ ...e, link: acessoLiberado ? e.link : null })) : extra?.data;
 
   const feito = Object.fromEntries((checks || []).map((c) => [c.treinamento_id, c.concluido_em]));
   const lista = treinamentos || [];
@@ -286,12 +362,27 @@ export default async function AreaDoAluno({ searchParams }) {
 
   return (
     <div className="aluno-pagina">
+      {previa ? (
+        <div className="faixa-previa">
+          <span>Você está vendo a área do aluno como <b>{eu.nome}</b>. Nada é alterado.</span>
+          <span className="linha" style={{ gap: 10 }}>
+            <Link href="/aluno" className="btn btn-sec btn-p">Trocar aluno</Link>
+            <Link href="/" className="btn btn-p">Voltar para a Central</Link>
+          </span>
+        </div>
+      ) : null}
       <header className="aluno-topo">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/logo-caup.png" alt="Capital Upgrade Campinas" width="150" height="42" className="aluno-logo" />
         <div className="linha" style={{ gap: 16 }}>
-          <TrocarSenha />
-          <form action={sair}><button type="submit" className="btn btn-sec btn-p">Sair</button></form>
+          {previa ? (
+            <span className="small muted">Trocar senha · Sair</span>
+          ) : (
+            <>
+              <TrocarSenha />
+              <form action={sair}><button type="submit" className="btn btn-sec btn-p">Sair</button></form>
+            </>
+          )}
         </div>
       </header>
 
@@ -309,14 +400,14 @@ export default async function AreaDoAluno({ searchParams }) {
 
         <nav className="segmentos aluno-abas" aria-label="Seções da área do aluno">
           {ABAS.map(([k, nome]) => (
-            <Link key={k} href={k === 'treinamentos' ? '/aluno' : `/aluno?aba=${k}`} className={aba === k ? 'ativo' : ''}>{nome}</Link>
+            <Link key={k} href={k === 'treinamentos' ? base.replace(/[?&]$/, '') : `${base}aba=${k}`} className={aba === k ? 'ativo' : ''}>{nome}</Link>
           ))}
         </nav>
 
         {faltaSql ? (
           <div className="vazio" style={{ padding: 28, fontSize: 14 }}>Esta parte está sendo preparada. Volte em breve.</div>
         ) : aba === 'encontros' ? (
-          <AbaEncontros encontros={extra.data || []} produto={eu.produto} />
+          <AbaEncontros encontros={encontros || []} produto={eu.produto} />
         ) : aba === 'ferramentas' ? (
           <AbaFerramentas ferramentas={(extra.data || []).filter((f) => !f.produto || f.produto === eu.produto)} />
         ) : aba === 'conexoes' ? (
@@ -325,9 +416,11 @@ export default async function AreaDoAluno({ searchParams }) {
             minha={(extra.data || []).find((c) => c.membro_id === eu.membro_id) || null}
             filtro={searchParams?.tipo}
             eu={eu}
+            previa={previa}
+            base={base}
           />
         ) : aba === 'avaliar' ? (
-          <AbaAvaliar ultima={(extra.data || [])[0] || null} />
+          <AbaAvaliar ultima={(extra.data || [])[0] || null} previa={previa} />
         ) : (
           <AbaTreinamentos lista={lista} feito={feito} />
         )}

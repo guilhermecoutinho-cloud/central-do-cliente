@@ -701,3 +701,17 @@ a.card.ferramenta:hover { color: var(--texto); }
 .nps-nota input:checked + span { background: var(--verde); border-color: var(--verde); color: var(--verde-escuro); transform: scale(1.04); }
 .nps-nota input:focus-visible + span { box-shadow: var(--foco); }
 @media (max-width: 560px) { .nps-notas { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+
+/* Modo "ver como aluno" (time) */
+.faixa-previa {
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px;
+  padding: 10px 44px; background: rgba(98, 204, 116, .1); border-bottom: 1px solid rgba(98, 204, 116, .3); color: var(--texto2); font-size: 13px;
+}
+.faixa-previa + .aluno-topo { top: 0; }
+.linha-aluno {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 18px; color: var(--texto);
+  border-bottom: 1px solid var(--borda); transition: background .15s;
+}
+.linha-aluno:last-child { border-bottom: 0; }
+.linha-aluno:hover { background: rgba(255, 255, 255, .03); color: var(--texto); }
+@media (max-width: 700px) { .faixa-previa { padding: 10px 16px; } }
