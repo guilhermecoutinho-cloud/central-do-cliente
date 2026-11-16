@@ -126,7 +126,6 @@ export default async function AbaDossie({ c, membros, searchParams }) {
                 {membros.map((m) => (
                   <div key={m.id} className="card-2 pilha">
                     <div className="linha" style={{ flexWrap: 'nowrap' }}>
-                      <span className={'av t-' + corAvatar(m.id)}>{iniciais(m.nome)}</span>
                       <span className="pilha-p" style={{ gap: 2 }}>
                         <span style={{ fontWeight: 600 }}>{m.nome}</span>
                         <span className="small muted">{m.cargo || 'Sem cargo'}</span>

@@ -70,7 +70,7 @@ export default async function Chamada({ params }) {
               return (
                 <div key={c.id} className="pilha" style={{ gap: 8 }}>
                   <Link href={`/clientes/${c.id}?aba=time`} className="small" style={{ fontWeight: 600, color: 'var(--muted)' }}>
-                    {c.empresa} · {c.nome}
+                    {c.empresa && c.empresa !== c.nome ? `${c.empresa} · ${c.nome}` : c.nome}
                   </Link>
                   {doCliente.length === 0 ? <span className="vazio">Time não cadastrado</span> : null}
                   {doCliente.map((m) => {
@@ -78,7 +78,6 @@ export default async function Chamada({ params }) {
                     return (
                       <div key={m.id} className="card-2 entre" style={{ padding: '10px 14px' }}>
                         <span className="linha" style={{ flexWrap: 'nowrap' }}>
-                          <span className={'av t-' + corAvatar(m.id)} style={{ width: 32, height: 32 }}>{iniciais(m.nome)}</span>
                           <span className="pilha-p" style={{ gap: 2 }}>
                             <span style={{ fontWeight: 600 }}>{m.nome}</span>
                             <span className="small muted">{m.cargo || ''}</span>

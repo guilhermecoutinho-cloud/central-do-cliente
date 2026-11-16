@@ -89,10 +89,9 @@ export default async function Cashback({ searchParams }) {
                       {i + 1}º
                     </span>
                     <span className="linha" style={{ flex: '1 1 220px', flexWrap: 'nowrap', minWidth: 0 }}>
-                      <span className={'av t-' + corAvatar(c.id)}>{iniciais(c.nome)}</span>
                       <span className="pilha-p" style={{ gap: 2, minWidth: 0 }}>
                         <span style={{ fontWeight: 600 }}>{c.nome}</span>
-                        <span className="small muted">{c.empresa}</span>
+                        {c.empresa && c.empresa !== c.nome ? <span className="small muted">{c.empresa}</span> : null}
                       </span>
                     </span>
                     <span className={'pill t-' + COR_PRODUTO[c.produto]}>{c.produto}</span>

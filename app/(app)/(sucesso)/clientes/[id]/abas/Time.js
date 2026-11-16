@@ -37,7 +37,6 @@ export default function AbaTime({ c, membros }) {
                   <tr key={m.id}>
                     <td className="principal">
                       <span className="linha" style={{ flexWrap: 'nowrap' }}>
-                        <span className={'av t-' + corAvatar(m.id)} style={{ width: 32, height: 32 }}>{iniciais(m.nome)}</span>
                         <span className="pilha-p" style={{ gap: 2 }}>
                           <span style={{ fontWeight: 600 }}>{m.nome}</span>
                           {m.papel ? <span className="small muted">{m.papel}</span> : null}

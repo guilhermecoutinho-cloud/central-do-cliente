@@ -47,7 +47,6 @@ export default function AcessoMatriz({ pessoas, acessos: iniciais_ }) {
               <tr key={p.user_id}>
                 <td className="principal">
                   <span className="linha" style={{ flexWrap: 'nowrap' }}>
-                    <span className={'av t-' + corAvatar(p.user_id)} style={{ width: 32, height: 32, borderRadius: '50%' }}>{iniciais(p.nome)}</span>
                     <span className="pilha-p" style={{ gap: 2 }}>
                       <span style={{ fontWeight: 600 }}>{p.nome}</span>
                       <span className="small muted">{p.papel === 'admin' ? 'Administrador' : 'Equipe'}</span>

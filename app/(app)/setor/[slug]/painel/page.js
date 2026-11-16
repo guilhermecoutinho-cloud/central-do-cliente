@@ -147,7 +147,6 @@ export default async function PainelSetor({ params }) {
             <div className="pilha" style={{ gap: 14 }}>
               {r.pessoas.map((p) => (
                 <div key={p.user_id || 'ninguem'} className="linha" style={{ gap: 12, flexWrap: 'nowrap' }}>
-                  <Avatar pessoa={p} />
                   <div className="pilha-p" style={{ flex: 1, minWidth: 0, gap: 6 }}>
                     <div className="entre" style={{ gap: 8, flexWrap: 'nowrap' }}>
                       <span style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.nome}</span>

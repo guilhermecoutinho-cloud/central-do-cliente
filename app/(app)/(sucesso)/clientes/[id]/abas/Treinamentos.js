@@ -52,7 +52,6 @@ export default async function AbaTreinamentos({ c, membros }) {
           <div key={m.id} className="aluno-bloco">
             <div className="entre" style={{ alignItems: 'flex-start' }}>
               <span className="linha" style={{ flexWrap: 'nowrap', gap: 12 }}>
-                <span className={'av t-' + corAvatar(m.id)} style={{ width: 36, height: 36, borderRadius: '50%' }}>{iniciais(m.nome)}</span>
                 <span className="pilha-p" style={{ gap: 2 }}>
                   <span style={{ fontWeight: 600 }}>{m.nome}</span>
                   <span className="small muted">{n} de {lista.length} treinamentos feitos{m.cargo ? ' · ' + m.cargo : ''}</span>

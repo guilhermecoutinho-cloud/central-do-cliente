@@ -49,10 +49,9 @@ export default async function OnboardingQuadro() {
               return (
                 <Link key={c.id} href={`/clientes/${c.id}?aba=onboarding`} className="cartao">
                   <span className="linha" style={{ flexWrap: 'nowrap', gap: 10 }}>
-                    <span className={'av t-' + corAvatar(c.id)} style={{ width: 32, height: 32 }}>{iniciais(c.nome)}</span>
                     <span className="pilha-p" style={{ gap: 2, minWidth: 0 }}>
                       <span style={{ fontSize: 13, fontWeight: 600 }}>{c.nome}</span>
-                      <span className="small muted">{c.empresa}</span>
+                      {c.empresa && c.empresa !== c.nome ? <span className="small muted">{c.empresa}</span> : null}
                     </span>
                   </span>
                   <span className="entre" style={{ gap: 6 }}>

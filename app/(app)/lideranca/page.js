@@ -253,7 +253,6 @@ export default async function Lideranca() {
             <div className="pilha" style={{ gap: 14 }}>
               {time.map((p) => (
                 <div key={p.user_id} className="linha" style={{ gap: 12, flexWrap: 'nowrap' }}>
-                  <span className={'av t-' + corAvatar(p.user_id)} style={{ width: 30, height: 30, borderRadius: '50%', fontSize: 11 }}>{iniciais(p.nome)}</span>
                   <div className="pilha-p" style={{ flex: 1, minWidth: 0, gap: 6 }}>
                     <div className="entre" style={{ gap: 8, flexWrap: 'nowrap' }}>
                       <span style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.nome}</span>

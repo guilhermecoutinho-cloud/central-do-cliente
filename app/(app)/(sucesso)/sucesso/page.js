@@ -59,7 +59,7 @@ export default async function Painel({ searchParams }) {
   // Alertas
   const alertas = [];
   lista.forEach(({ c, r }) => {
-    if (r.faltasSeguidas >= 2) alertas.push({ tag: 'Presença', cor: 'amber', texto: `${c.nome} (${c.empresa}) faltou ${r.faltasSeguidas} encontros seguidos`, id: c.id });
+    if (r.faltasSeguidas >= 2) alertas.push({ tag: 'Presença', cor: 'amber', texto: `${c.nome}${c.empresa && c.empresa !== c.nome ? ` (${c.empresa})` : ''} faltou ${r.faltasSeguidas} encontros seguidos`, id: c.id });
     if (c.status === 'ativo' && r.contratados > 0 && r.saldo === 0) alertas.push({ tag: 'Renovação', cor: 'green', texto: `${c.nome} não tem mais encontros no saldo`, id: c.id });
     if (c.status === 'onboarding' && !c.responsavel) alertas.push({ tag: 'Onboarding', cor: 'violet', texto: `${c.nome}: onboarding sem responsável`, id: c.id });
   });
@@ -148,10 +148,9 @@ export default async function Painel({ searchParams }) {
                     <tr key={c.id}>
                       <td className="principal">
                         <Link href={`/clientes/${c.id}`} className="linha" style={{ color: 'var(--texto)', flexWrap: 'nowrap' }}>
-                          <span className={'av t-' + corAvatar(c.id)}>{iniciais(c.nome)}</span>
                           <span className="pilha-p" style={{ gap: 2 }}>
                             <span style={{ fontWeight: 600 }}>{c.nome}</span>
-                            <span className="small muted">{c.empresa}</span>
+                            {c.empresa && c.empresa !== c.nome ? <span className="small muted">{c.empresa}</span> : null}
                           </span>
                         </Link>
                       </td>

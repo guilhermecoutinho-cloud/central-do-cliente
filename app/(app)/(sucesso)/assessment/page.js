@@ -115,7 +115,6 @@ export default async function Assessment({ searchParams }) {
                     return (
                       <Link key={r.id} href={`/assessment?r=${r.id}`} className="cartao" style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 12, borderColor: ativo ? 'var(--verde)' : undefined }}>
                         <span className="linha" style={{ flex: '1 1 220px', flexWrap: 'nowrap' }}>
-                          <span className={'av t-' + corAvatar(r.nome)}>{iniciais(r.nome)}</span>
                           <span className="pilha-p" style={{ gap: 2 }}>
                             <span style={{ fontWeight: 600 }}>{r.nome}</span>
                             <span className="small muted">{c ? c.empresa : 'Não identificado no cadastro'}</span>
@@ -137,7 +136,6 @@ export default async function Assessment({ searchParams }) {
                   return (
                     <Link key={m.id} href={`/clientes/${m.cliente_id}?aba=time`} className="cartao" style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 12 }}>
                       <span className="linha" style={{ flex: '1 1 220px', flexWrap: 'nowrap' }}>
-                        <span className={'av t-' + corAvatar(m.id)}>{iniciais(m.nome)}</span>
                         <span className="pilha-p" style={{ gap: 2 }}>
                           <span style={{ fontWeight: 600 }}>{m.nome}</span>
                           <span className="small muted">{c?.empresa}</span>

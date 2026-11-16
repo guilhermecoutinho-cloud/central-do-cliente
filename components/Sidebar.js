@@ -118,7 +118,6 @@ export default function Sidebar({ nome, admin, setores, atrasadas }) {
         })}
 
         <div className="rodape" style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <span className="av t-green" style={{ width: 32, height: 32 }}>{iniciais(nome)}</span>
           <span className="pilha-p" style={{ gap: 2, flex: 1, minWidth: 0 }}>
             <span className="small" style={{ fontWeight: 600 }}>{nome}</span>
             <span className="small muted">{admin ? 'Administrador' : 'Equipe'}</span>
