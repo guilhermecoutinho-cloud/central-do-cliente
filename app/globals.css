@@ -721,3 +721,6 @@ a.card.ferramenta:hover { color: var(--texto); }
 .lista-rolavel:empty { display: none; }
 .lista-mais { display: flex; justify-content: center; padding: 6px 0 2px; }
 @media (max-width: 760px) { .lista-rolavel { max-height: 480px; } }
+.graf-barra.link { color: var(--texto); border-radius: 8px; padding: 2px 4px; margin: -2px -4px; transition: background .15s, opacity .2s; }
+.graf-barra.link:hover { background: rgba(255, 255, 255, .03); color: var(--texto); }
+.graf-barra.apagada { opacity: .45; }

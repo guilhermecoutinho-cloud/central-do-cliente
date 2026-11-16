@@ -4,6 +4,7 @@ import { resumoEncontros } from '@/lib/encontros';
 import { ETAPAS } from '@/lib/onboarding';
 import { COR_PRODUTO, PRODUTOS, corAvatar, fmtDataHora, iniciais } from '@/lib/util';
 import Icone from '@/components/Icone';
+import FiltroProduto from '@/components/FiltroProduto';
 import SetorIcone from '@/components/SetorIcone';
 import { atrasada, hojeISO, somarDias } from '@/lib/tarefas';
 
@@ -35,7 +36,9 @@ export default async function Painel({ searchParams }) {
   const agora = new Date();
   const lista = (clientes || []).map((c) => ({ c, r: resumoEncontros(c, encontros || [], presencaCliente || [], agora) }));
 
-  const filtrada = lista.filter(({ r }) => {
+  const produtoSel = PRODUTOS.includes(searchParams?.produto) || lista.some(({ c }) => c.produto === searchParams?.produto) ? searchParams.produto : null;
+  const filtrada = lista.filter(({ c, r }) => {
+    if (produtoSel && c.produto !== produtoSel) return false;
     if (filtro === 'presentes') return r.ultimoTipo === 'ok';
     if (filtro === 'faltaram') return r.ultimoTipo === 'falta';
     return true;
@@ -114,11 +117,12 @@ export default async function Painel({ searchParams }) {
         <div className="entre">
           <h2 className="h2">Clientes</h2>
           <div className="segmentos" role="group" aria-label="Filtrar pelo último encontro">
-            <Link href="/sucesso" className={filtro === 'todos' ? 'ativo' : ''}>Todos</Link>
-            <Link href="/sucesso?ultimo=presentes" className={filtro === 'presentes' ? 'ativo' : ''}>Presentes</Link>
-            <Link href="/sucesso?ultimo=faltaram" className={filtro === 'faltaram' ? 'ativo' : ''}>Faltaram</Link>
+            <Link href={produtoSel ? `/sucesso?produto=${encodeURIComponent(produtoSel)}` : '/sucesso'} className={filtro === 'todos' ? 'ativo' : ''}>Todos</Link>
+            <Link href={`/sucesso?ultimo=presentes${produtoSel ? '&produto=' + encodeURIComponent(produtoSel) : ''}`} className={filtro === 'presentes' ? 'ativo' : ''}>Presentes</Link>
+            <Link href={`/sucesso?ultimo=faltaram${produtoSel ? '&produto=' + encodeURIComponent(produtoSel) : ''}`} className={filtro === 'faltaram' ? 'ativo' : ''}>Faltaram</Link>
           </div>
         </div>
+        <FiltroProduto caminho="/sucesso" atual={produtoSel} outros={{ ultimo: filtro === 'todos' ? null : filtro }} />
         {filtrada.length === 0 ? (
           <div className="vazio">
             {lista.length === 0 ? (

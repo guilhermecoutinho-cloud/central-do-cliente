@@ -3,14 +3,19 @@ import { createClient } from '@/lib/supabase/server';
 import { ETAPAS, totalTarefas } from '@/lib/onboarding';
 import { COR_PRODUTO, PRODUTOS } from '@/lib/util';
 import ListaIncremental from '@/components/ListaIncremental';
+import FiltroProduto from '@/components/FiltroProduto';
 
-export default async function OnboardingQuadro() {
+export default async function OnboardingQuadro({ searchParams }) {
   const supabase = createClient();
   const [{ data: clientes, error }, { data: tarefas }] = await Promise.all([
     supabase.from('clientes').select('id, nome, empresa, produto, status, etapa_onboarding, responsavel').neq('status', 'encerrado').order('criado_em'),
     supabase.from('onboarding_tarefas').select('cliente_id'),
   ]);
   if (error) throw new Error(error.message);
+
+  const todos = clientes || [];
+  const produtoSel = todos.some((c) => c.produto === searchParams?.produto) || PRODUTOS.includes(searchParams?.produto) ? searchParams.produto : null;
+  const doFiltro = produtoSel ? todos.filter((c) => c.produto === produtoSel) : todos;
 
   const feitasPorCliente = {};
   (tarefas || []).forEach((t) => (feitasPorCliente[t.cliente_id] = (feitasPorCliente[t.cliente_id] || 0) + 1));
@@ -19,15 +24,14 @@ export default async function OnboardingQuadro() {
 
   const colunas = ETAPAS.map((et, i) => ({
     et,
-    clientes: (clientes || []).filter((c) => (c.status === 'ativo' ? ultima : Math.min(c.etapa_onboarding, ultima)) === i),
+    clientes: doFiltro.filter((c) => (c.status === 'ativo' ? ultima : Math.min(c.etapa_onboarding, ultima)) === i),
   }));
 
   // Números do topo: total, por produto e por etapa
-  const lista = clientes || [];
-  const totalClientes = lista.length;
-  const emOnboarding = lista.filter((c) => c.status === 'onboarding').length;
-  const produtos = [...PRODUTOS, ...new Set(lista.map((c) => c.produto).filter((p) => !PRODUTOS.includes(p)))];
-  const porProduto = produtos.map((p) => ({ nome: p, n: lista.filter((c) => c.produto === p).length }));
+  const totalClientes = doFiltro.length;
+  const emOnboarding = doFiltro.filter((c) => c.status === 'onboarding').length;
+  const produtos = [...PRODUTOS, ...new Set(todos.map((c) => c.produto).filter((p) => !PRODUTOS.includes(p)))];
+  const porProduto = produtos.map((p) => ({ nome: p, n: todos.filter((c) => c.produto === p).length }));
   const porEtapa = colunas.map(({ et, clientes: l }) => ({ nome: et.nome, n: l.length }));
   const maiorProduto = Math.max(1, ...porProduto.map((x) => x.n));
   const maiorEtapa = Math.max(1, ...porEtapa.map((x) => x.n));
@@ -42,11 +46,13 @@ export default async function OnboardingQuadro() {
         <Link href="/clientes/novo" className="btn">+ Cliente novo</Link>
       </div>
 
+      <FiltroProduto caminho="/onboarding" atual={produtoSel} />
+
       <div className="grid-kpi anim anim-1">
         <div className="kpi">
           <span className="muted">Clientes ativos</span>
           <span className="valor">{totalClientes}</span>
-          <span className="small muted">todos os produtos</span>
+          <span className="small muted">{produtoSel ? 'no ' + produtoSel : 'todos os produtos'}</span>
         </div>
         <div className="kpi">
           <span className="muted">Em onboarding</span>
@@ -64,15 +70,15 @@ export default async function OnboardingQuadro() {
         <section className="card">
           <div className="entre">
             <h2 className="h2">Clientes por produto</h2>
-            <span className="small muted">{totalClientes} no total</span>
+            <span className="small muted">{todos.length} no total</span>
           </div>
           <div className="graf-barras">
             {porProduto.map((x, i) => (
-              <div key={x.nome} className="graf-barra">
+              <Link key={x.nome} href={produtoSel === x.nome ? '/onboarding' : `/onboarding?produto=${encodeURIComponent(x.nome)}`} className={'graf-barra link' + (produtoSel && produtoSel !== x.nome ? ' apagada' : '')}>
                 <span className="rot">{x.nome}</span>
                 <span className="trilho"><span style={{ width: (x.n / maiorProduto) * 100 + '%', animationDelay: i * 0.05 + 's' }} /></span>
                 <span className="num">{x.n}</span>
-              </div>
+              </Link>
             ))}
           </div>
         </section>
