@@ -108,6 +108,16 @@ function criarDb() {
       const { error } = await sb.from('tarefa_atividade').insert(itens.map((i) => ({ ...i, autor_nome: AUTOR })));
       checar(error);
     },
+    async gravarCalendario({ calendario, posts }) {
+      const { data: cal, error } = await sb.from('conteudo_calendarios').insert({ ...calendario, criado_por: AUTOR }).select('id').single();
+      if (error) throw new Error(/conteudo_/.test(error.message) ? 'Falta rodar o supabase/calendario-conteudo.sql no Supabase.' : error.message);
+      const { error: e2 } = await sb.from('conteudo_posts').insert(posts.map((p) => ({ ...p, calendario_id: cal.id, feito: Boolean(p.link) })));
+      if (e2) {
+        await sb.from('conteudo_calendarios').delete().eq('id', cal.id);
+        throw new Error(e2.message);
+      }
+      return cal.id;
+    },
     async comentar(tarefaId, texto) {
       const { error } = await sb.from('tarefa_atualizacoes').insert({ tarefa_id: tarefaId, autor: null, autor_nome: AUTOR, texto });
       checar(error);

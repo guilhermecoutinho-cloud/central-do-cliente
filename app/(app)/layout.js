@@ -1,10 +1,11 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { getPerfil } from '@/lib/perfil';
-import { hojeISO } from '@/lib/tarefas';
+import { getPerfil, podeSetor } from '@/lib/perfil';
+import { hojeISO, somarDias as somarDiasISO } from '@/lib/tarefas';
 import Sidebar from '@/components/Sidebar';
 import LembreteTarefas from '@/components/LembreteTarefas';
 import AvisoTarefaNova from '@/components/AvisoTarefaNova';
+import AvisoConteudoHoje from '@/components/AvisoConteudoHoje';
 import { sair } from '@/app/login/actions';
 
 export const dynamic = 'force-dynamic';
@@ -56,6 +57,8 @@ export default async function AppLayout({ children }) {
   let atrasadas = 0;
   let vencemHoje = 0;
   let tarefasNovas = [];
+  let conteudoHoje = [];
+  let conteudoPendente = 0;
   const nomesEquipe = {};
   if (!perfil.semMigracao) {
     const supabase = createClient();
@@ -88,6 +91,31 @@ export default async function AppLayout({ children }) {
     }
   }
 
+  // Marketing: "hoje tem conteúdo" do calendário de social mídia (precisa do calendario-conteudo.sql)
+  if (!perfil.semMigracao && podeSetor(perfil, 'marketing')) {
+    const supabase = createClient();
+    const hoje = hojeISO();
+    const [{ data: deHoje }, { count: pend }] = await Promise.all([
+      supabase
+        .from('conteudo_posts')
+        .select('id, descricao, campanha, formato, data, data_fim')
+        .eq('feito', false)
+        .lte('data', hoje)
+        .or(`data.eq.${hoje},data_fim.gte.${hoje}`)
+        .order('ordem')
+        .limit(10),
+      supabase
+        .from('conteudo_posts')
+        .select('id', { count: 'exact', head: true })
+        .eq('feito', false)
+        .lt('data', hoje)
+        .gte('data', somarDiasISO(hoje, -14))
+        .or(`data_fim.is.null,data_fim.lt.${hoje}`),
+    ]);
+    conteudoHoje = deHoje || [];
+    conteudoPendente = pend || 0;
+  }
+
   return (
     <div className="app">
       <Sidebar nome={perfil.nome} admin={perfil.admin} setores={perfil.setores} atrasadas={atrasadas} />
@@ -101,6 +129,7 @@ export default async function AppLayout({ children }) {
       </main>
       <div className="avisos-canto">
         <AvisoTarefaNova meuId={perfil.semMigracao ? null : perfil.id} iniciais={tarefasNovas} nomes={nomesEquipe} />
+        <AvisoConteudoHoje hoje={hojeISO()} posts={conteudoHoje} pendentes={conteudoPendente} />
         <LembreteTarefas atrasadas={atrasadas} hoje={vencemHoje} />
       </div>
     </div>
