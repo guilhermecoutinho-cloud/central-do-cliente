@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, useTransition } from 'react';
-import { salvarPessoa, tirarPessoa } from '@/app/actions-rh';
+import { organizarPessoa, salvarPessoa, tirarPessoa } from '@/app/actions-rh';
 import { AREAS_RH, montarArvore } from '@/lib/rh';
 
 const RASCUNHO = 'rascunho';
@@ -23,6 +23,18 @@ function abaixoDe(id, pessoas) {
     }
   }
   return fora;
+}
+
+// A quem a pessoa reporta de fato (gestor que não existe mais conta como topo)
+function paiDe(p, ids) {
+  return p.gestor_id && ids.has(p.gestor_id) && p.gestor_id !== p.id ? p.gestor_id : null;
+}
+// Equipe de alguém na ordem do desenho
+function equipeDe(lista, pai) {
+  const ids = new Set(lista.map((p) => p.id));
+  return lista
+    .filter((p) => paiDe(p, ids) === pai)
+    .sort((a, b) => (a.ordem ?? 0) - (b.ordem ?? 0) || a.nome.localeCompare(b.nome));
 }
 
 export default function Organograma({ pessoas: iniciais }) {
@@ -124,6 +136,68 @@ export default function Organograma({ pessoas: iniciais }) {
     });
   }
 
+  // ------------------------------------------------ Arrastar e soltar no desenho
+  const [arrastando, setArrastando] = useState(null);
+  const [alvo, setAlvo] = useState(null); // { id, pos: 'antes' | 'depois' | 'dentro' }
+  const bloqueados = useMemo(() => (arrastando ? abaixoDe(arrastando, pessoas) : new Set()), [arrastando, pessoas]);
+
+  function soltar() {
+    const id = arrastando;
+    const a = alvo;
+    setArrastando(null);
+    setAlvo(null);
+    if (!id || !a || bloqueados.has(a.id)) return;
+    const ids = new Set(pessoas.map((p) => p.id));
+    const destino = pessoas.find((p) => p.id === a.id);
+    const movida = pessoas.find((p) => p.id === id);
+    if (!destino || !movida) return;
+    const novoPai = a.pos === 'dentro' ? destino.id : paiDe(destino, ids);
+    const sem = pessoas.filter((p) => p.id !== id);
+    const equipe = equipeDe(sem, novoPai);
+    let i = a.pos === 'dentro' ? equipe.length : equipe.findIndex((p) => p.id === destino.id) + (a.pos === 'depois' ? 1 : 0);
+    if (i < 0) i = equipe.length;
+    equipe.splice(i, 0, movida);
+    const ordem = equipe.map((p) => p.id);
+    const antes = pessoas;
+    setPessoas((l) =>
+      l.map((p) => {
+        const k = ordem.indexOf(p.id);
+        if (p.id === id) return { ...p, gestor_id: novoPai, ordem: k + 1 };
+        return k >= 0 ? { ...p, ordem: k + 1 } : p;
+      }),
+    );
+    if (editandoId === id) setForm((f) => ({ ...f, gestor_id: novoPai || '' }));
+    setErro('');
+    iniciar(async () => {
+      try {
+        await organizarPessoa({ id, gestor_id: novoPai, ordem });
+      } catch (e2) {
+        setPessoas(antes);
+        setErro(e2?.message || 'Não foi possível mover.');
+      }
+    });
+  }
+
+  const dnd = {
+    arrastando,
+    alvo,
+    comecar: (id) => {
+      setArrastando(id);
+      setAlvo(null);
+    },
+    sobre: (id, pos) => {
+      if (!arrastando || id === RASCUNHO || bloqueados.has(id)) return false;
+      setAlvo((a) => (a?.id === id && a.pos === pos ? a : { id, pos }));
+      return true;
+    },
+    sair: (id) => setAlvo((a) => (a?.id === id ? null : a)),
+    soltar,
+    fim: () => {
+      setArrastando(null);
+      setAlvo(null);
+    },
+  };
+
   const editando = editandoId ? pessoas.find((p) => p.id === editandoId) : null;
   const selecionado = editandoId || (digitou && (form.nome.trim() || form.cargo.trim()) ? RASCUNHO : null);
 
@@ -131,7 +205,7 @@ export default function Organograma({ pessoas: iniciais }) {
     <div className="org-layout">
       <section className="card org-quadro" aria-label="Organograma">
         {arvore.length ? (
-          <Desenho arvore={arvore} selecionado={selecionado} onEditar={editar} onNovo={novo} />
+          <Desenho arvore={arvore} selecionado={selecionado} onEditar={editar} onNovo={novo} dnd={dnd} />
         ) : (
           <div className="org-vazio">
             <span className="h2">Comece pela diretoria</span>
@@ -194,7 +268,7 @@ export default function Organograma({ pessoas: iniciais }) {
 // ---------------------------------------------------------------- Desenho
 
 // Ajusta o desenho à largura da tela (sem rolar para o lado). Se ficar pequeno demais, vira lista.
-function Desenho({ arvore, selecionado, onEditar, onNovo }) {
+function Desenho({ arvore, selecionado, onEditar, onNovo, dnd }) {
   const caixa = useRef(null);
   const palco = useRef(null);
   const [medida, setMedida] = useState({ escala: 1, altura: 0, x: 0, lista: false });
@@ -218,7 +292,7 @@ function Desenho({ arvore, selecionado, onEditar, onNovo }) {
     return () => ro.disconnect();
   }, []);
 
-  const props = { selecionado, onEditar, onNovo };
+  const props = { selecionado, onEditar, onNovo, dnd };
   return (
     <>
       <div ref={caixa} className="oc-caixa" style={{ height: medida.altura }}>
@@ -242,14 +316,56 @@ function Desenho({ arvore, selecionado, onEditar, onNovo }) {
   );
 }
 
-function Cartao({ p, selecionado, onEditar, onNovo, compacto }) {
+// vertical: cartões empilhados (caixa de equipe e modo lista) — soltar em cima/embaixo em vez de esquerda/direita
+function Cartao({ p, selecionado, onEditar, onNovo, compacto, vertical, dnd }) {
   const rascunho = p.id === RASCUNHO;
-  const classe = ['oc-card', ehDiretoria(p) ? 'diretoria' : '', selecionado === p.id ? 'sel' : '', rascunho ? 'rascunho' : '', compacto ? 'compacto' : '']
+  const alvo = dnd.alvo?.id === p.id ? dnd.alvo.pos : null;
+  const classe = [
+    'oc-card',
+    ehDiretoria(p) ? 'diretoria' : '',
+    selecionado === p.id ? 'sel' : '',
+    rascunho ? 'rascunho' : '',
+    compacto ? 'compacto' : '',
+    dnd.arrastando === p.id ? 'arrastando' : '',
+    alvo === 'dentro' ? 'alvo-dentro' : '',
+  ]
     .filter(Boolean)
     .join(' ');
+
+  function sobre(e) {
+    const r = e.currentTarget.getBoundingClientRect();
+    const f = vertical ? (e.clientY - r.top) / r.height : (e.clientX - r.left) / r.width;
+    const pos = f < 0.33 ? 'antes' : f > 0.67 ? 'depois' : 'dentro';
+    if (dnd.sobre(p.id, pos)) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+    }
+  }
+
   return (
-    <div className="oc-cartao">
-      <button type="button" className={classe} onClick={() => onEditar(p.id)} aria-label={`${p.nome}${p.cargo ? ', ' + p.cargo : ''}. Editar`}>
+    <div
+      className={'oc-cartao' + (alvo && alvo !== 'dentro' ? ` alvo-${alvo}${vertical ? ' v' : ''}` : '')}
+      onDragOver={sobre}
+      onDragLeave={(e) => !e.currentTarget.contains(e.relatedTarget) && dnd.sair(p.id)}
+      onDrop={(e) => {
+        e.preventDefault();
+        dnd.soltar();
+      }}
+    >
+      {alvo === 'dentro' ? <span className="oc-dica">Reportar a {p.nome.split(' ')[0]}</span> : null}
+      <button
+        type="button"
+        className={classe}
+        draggable={!rascunho}
+        onDragStart={(e) => {
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', p.id);
+          dnd.comecar(p.id);
+        }}
+        onDragEnd={dnd.fim}
+        onClick={() => onEditar(p.id)}
+        aria-label={`${p.nome}${p.cargo ? ', ' + p.cargo : ''}. Editar`}
+      >
         <span className="oc-nome">{p.nome}</span>
         <span className="oc-cargo">{p.cargo || (rascunho ? 'Digitando…' : 'Sem cargo')}</span>
         {p.area ? <span className="oc-area">{p.area}</span> : null}
@@ -273,7 +389,7 @@ function NoArvore({ p, ...props }) {
       {filhos.length && empilhar ? (
         <div className="oc-grupo-wrap">
           <ul className="oc-grupo">
-            {filhos.map((f) => <li key={f.id}><Cartao p={f} compacto {...props} /></li>)}
+            {filhos.map((f) => <li key={f.id}><Cartao p={f} compacto vertical {...props} /></li>)}
           </ul>
         </div>
       ) : filhos.length ? (
@@ -288,7 +404,7 @@ function NoArvore({ p, ...props }) {
 function NoLista({ p, ...props }) {
   return (
     <li className="org-no">
-      <Cartao p={p} compacto {...props} />
+      <Cartao p={p} compacto vertical {...props} />
       {p.filhos.length ? (
         <ul className="org-filhos">
           {p.filhos.map((f) => <NoLista key={f.id} p={f} {...props} />)}

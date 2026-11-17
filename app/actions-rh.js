@@ -35,27 +35,43 @@ function dadosPessoa(d) {
 }
 const CAMPOS_PESSOA = 'id, nome, cargo, area, gestor_id, email, telefone, admissao, ordem';
 
+// Não deixa alguém reportar a si mesmo nem a alguém que está abaixo dele
+async function checarCiclo(supabase, id, gestorId) {
+  const { data: todas } = await supabase.from('rh_pessoas').select('id, gestor_id');
+  const pai = Object.fromEntries((todas || []).map((x) => [x.id, x.gestor_id]));
+  let atual = gestorId;
+  for (let i = 0; atual && i < 500; i++) {
+    if (atual === id) throw new Error('Essa pessoa não pode reportar a alguém que está abaixo dela.');
+    atual = pai[atual];
+  }
+}
+
 // Cria (sem id) ou edita (com id) uma pessoa do organograma e devolve como ficou
 export async function salvarPessoa({ id, dados: entrada }) {
   await exigirRh();
   const dados = dadosPessoa(entrada || {});
   if (!dados.nome) throw new Error('Preencha o nome.');
   const supabase = createClient();
-  if (id && dados.gestor_id) {
-    // Não deixa alguém reportar a si mesmo nem a alguém que está abaixo dele
-    const { data: todas } = await supabase.from('rh_pessoas').select('id, gestor_id');
-    const pai = Object.fromEntries((todas || []).map((x) => [x.id, x.gestor_id]));
-    let atual = dados.gestor_id;
-    for (let i = 0; atual && i < 500; i++) {
-      if (atual === id) throw new Error('Essa pessoa não pode reportar a alguém que está abaixo dela.');
-      atual = pai[atual];
-    }
-  }
+  if (id && dados.gestor_id) await checarCiclo(supabase, id, dados.gestor_id);
   const q = id ? supabase.from('rh_pessoas').update(dados).eq('id', id) : supabase.from('rh_pessoas').insert(dados);
   const { data, error } = await q.select(CAMPOS_PESSOA).single();
   checar(error);
   revalidatePath('/rh/organograma');
   return data;
+}
+
+// Arrastar no desenho: muda a quem a pessoa reporta e a ordem (da esquerda para a direita) da equipe
+export async function organizarPessoa({ id, gestor_id, ordem }) {
+  await exigirRh();
+  const supabase = createClient();
+  const gestor = gestor_id || null;
+  if (gestor) await checarCiclo(supabase, id, gestor);
+  const { error } = await supabase.from('rh_pessoas').update({ gestor_id: gestor }).eq('id', id);
+  checar(error);
+  const ids = (Array.isArray(ordem) ? ordem : []).slice(0, 300);
+  const resultados = await Promise.all(ids.map((pid, i) => supabase.from('rh_pessoas').update({ ordem: i + 1 }).eq('id', pid)));
+  checar(resultados.find((r) => r.error)?.error);
+  revalidatePath('/rh/organograma');
 }
 
 export async function tirarPessoa({ id }) {

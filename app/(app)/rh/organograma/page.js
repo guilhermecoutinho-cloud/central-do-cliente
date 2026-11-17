@@ -21,7 +21,7 @@ export default async function PaginaOrganograma() {
           <h1 className="titulo">Organograma</h1>
           <span className="small" style={{ color: 'var(--texto3)' }}>
             {lista.length} {lista.length === 1 ? 'pessoa' : 'pessoas'}
-            {areas.size ? ` em ${areas.size} ${areas.size === 1 ? 'área' : 'áreas'}` : ''}. Clique em alguém para editar, ou no + para adicionar abaixo dela.
+            {areas.size ? ` em ${areas.size} ${areas.size === 1 ? 'área' : 'áreas'}` : ''}. Clique para editar, use o + para adicionar abaixo e arraste para reorganizar.
           </span>
         </div>
       </div>
