@@ -4,6 +4,7 @@ import { getPerfil } from '@/lib/perfil';
 import { hojeISO } from '@/lib/tarefas';
 import Sidebar from '@/components/Sidebar';
 import LembreteTarefas from '@/components/LembreteTarefas';
+import AvisoTarefaNova from '@/components/AvisoTarefaNova';
 import { sair } from '@/app/login/actions';
 
 export const dynamic = 'force-dynamic';
@@ -54,6 +55,8 @@ export default async function AppLayout({ children }) {
   // Minhas tarefas atrasadas (aparece no menu) e as que vencem hoje (aviso ao abrir a Central)
   let atrasadas = 0;
   let vencemHoje = 0;
+  let tarefasNovas = [];
+  const nomesEquipe = {};
   if (!perfil.semMigracao) {
     const supabase = createClient();
     const hoje = hojeISO();
@@ -61,6 +64,28 @@ export default async function AppLayout({ children }) {
     const [{ count: a }, { count: h }] = await Promise.all([base().lt('prazo', hoje), base().eq('prazo', hoje)]);
     atrasadas = a || 0;
     vencemHoje = h || 0;
+
+    // Tarefas que alguém colocou no meu nome desde a última vez que vi (precisa do aviso-tarefas.sql)
+    const { data: eu } = await supabase.from('equipe').select('tarefas_vistas_em').eq('user_id', perfil.id).maybeSingle();
+    if (eu?.tarefas_vistas_em) {
+      const { data: chegaram } = await supabase
+        .from('tarefas')
+        .select('id, titulo, setor, prazo, atribuido_em, atribuido_por')
+        .eq('responsavel', perfil.id)
+        .neq('status', 'Feito')
+        .gt('atribuido_em', eu.tarefas_vistas_em)
+        .or(`atribuido_por.is.null,atribuido_por.neq.${perfil.id}`)
+        .order('atribuido_em', { ascending: false })
+        .limit(20);
+      tarefasNovas = chegaram || [];
+      if (tarefasNovas.length) {
+        const ids = [...new Set(tarefasNovas.map((t) => t.atribuido_por).filter(Boolean))];
+        if (ids.length) {
+          const { data: pessoas } = await supabase.from('equipe').select('user_id, nome').in('user_id', ids);
+          for (const p of pessoas || []) nomesEquipe[p.user_id] = p.nome;
+        }
+      }
+    }
   }
 
   return (
@@ -74,7 +99,10 @@ export default async function AppLayout({ children }) {
         ) : null}
         {children}
       </main>
-      <LembreteTarefas atrasadas={atrasadas} hoje={vencemHoje} />
+      <div className="avisos-canto">
+        <AvisoTarefaNova meuId={perfil.semMigracao ? null : perfil.id} iniciais={tarefasNovas} nomes={nomesEquipe} />
+        <LembreteTarefas atrasadas={atrasadas} hoje={vencemHoje} />
+      </div>
     </div>
   );
 }

@@ -3,10 +3,10 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 
-const CHAVE_MUDO = 'central:lembrete-mudo';
+export const CHAVE_MUDO = 'central:lembrete-mudo';
 
 // Toca um "plim" curto (sem arquivo de áudio: gerado na hora pelo navegador)
-function tocarSom() {
+export function tocarSom(notas = [[880, 0], [1320, 0.16]]) {
   try {
     const Ctx = window.AudioContext || window.webkitAudioContext;
     if (!Ctx) return false;
@@ -16,7 +16,7 @@ function tocarSom() {
       if (tocou) return;
       tocou = true;
       const agora = ctx.currentTime;
-      [[880, 0], [1320, 0.16]].forEach(([freq, atraso]) => {
+      notas.forEach(([freq, atraso]) => {
         const osc = ctx.createOscillator();
         const vol = ctx.createGain();
         osc.type = 'sine';
