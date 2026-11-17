@@ -74,6 +74,35 @@ export async function organizarPessoa({ id, gestor_id, ordem }) {
   revalidatePath('/rh/organograma');
 }
 
+// Organograma livre: salva onde cada cartão ficou e, se soltou em cima de alguém, o novo gestor
+export async function moverNoOrganograma({ gestor, posicoes }) {
+  await exigirRh();
+  const supabase = createClient();
+  if (gestor?.id) {
+    const novo = gestor.gestor_id || null;
+    if (novo) await checarCiclo(supabase, gestor.id, novo);
+    const { error } = await supabase.from('rh_pessoas').update({ gestor_id: novo }).eq('id', gestor.id);
+    checar(error);
+  }
+  const itens = (Array.isArray(posicoes) ? posicoes : []).slice(0, 300);
+  const resultados = await Promise.all(
+    itens.map((p) =>
+      supabase.from('rh_pessoas').update({ pos_x: Math.round(Number(p.x) || 0), pos_y: Math.round(Number(p.y) || 0) }).eq('id', p.id),
+    ),
+  );
+  const erro = resultados.find((r) => r.error)?.error;
+  if (erro) throw new Error(/pos_x|pos_y/.test(erro.message) ? 'Para salvar as posições, rode o arquivo supabase/rh-organograma.sql no Supabase.' : erro.message);
+  revalidatePath('/rh/organograma');
+}
+
+// Volta todo mundo para a arrumação automática
+export async function organizarAutomatico() {
+  await exigirRh();
+  const { error } = await createClient().from('rh_pessoas').update({ pos_x: null, pos_y: null }).not('id', 'is', null);
+  checar(error);
+  revalidatePath('/rh/organograma');
+}
+
 export async function tirarPessoa({ id }) {
   await exigirRh();
   const supabase = createClient();

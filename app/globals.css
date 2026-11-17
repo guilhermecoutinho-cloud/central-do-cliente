@@ -835,22 +835,22 @@ details.card > summary::-webkit-details-marker { display: none; }
 .oc-mais:hover { border-color: var(--verde); }
 .oc-grupo .oc-mais, .org-arvore .oc-mais { left: auto; right: 8px; bottom: auto; top: 50%; transform: translateY(-50%); }
 @media (hover: none) { .oc-mais { opacity: 1; } }
-.oc-card[draggable="true"] { cursor: grab; }
-.oc-card[draggable="true"]:active { cursor: grabbing; }
-.oc-card.arrastando { opacity: .35; }
 .oc-card.alvo-dentro { border-color: var(--verde); border-style: dashed; background: rgba(98, 204, 116, .08); }
-.oc-cartao.alvo-antes::before, .oc-cartao.alvo-depois::before {
-  content: ''; position: absolute; z-index: 3; top: 6px; bottom: 6px; width: 3px; border-radius: 3px; background: var(--verde); pointer-events: none;
-}
-.oc-cartao.alvo-antes::before { left: -6px; }
-.oc-cartao.alvo-depois::before { right: -6px; }
-.oc-cartao.v.alvo-antes::before, .oc-cartao.v.alvo-depois::before { left: 6px; right: 6px; width: auto; height: 3px; top: auto; bottom: auto; }
-.oc-cartao.v.alvo-antes::before { top: -5px; }
-.oc-cartao.v.alvo-depois::before { bottom: -5px; }
 .oc-dica {
   position: absolute; z-index: 4; left: 50%; top: 50%; transform: translate(-50%, -50%); white-space: nowrap; pointer-events: none;
   padding: 4px 9px; border-radius: 8px; font-size: 12px; font-weight: 600; background: var(--verde); color: var(--verde-escuro);
 }
+/* Organograma livre: cada cartão vai para onde for arrastado */
+.oc-livre { position: relative; width: 100%; transition: height .25s var(--ease); }
+.oc-livre-palco { position: absolute; top: 0; left: 0; transform-origin: 0 0; transition: transform .25s var(--ease); user-select: none; -webkit-user-select: none; }
+.oc-livre-palco.arrastando { transition: none; }
+.oc-linhas { position: absolute; top: 0; left: 0; overflow: visible; pointer-events: none; }
+.oc-linhas path { fill: none; stroke: var(--borda-forte); stroke-width: 1.5; }
+.oc-solto { position: absolute; width: 188px; touch-action: none; transition: left .25s var(--ease), top .25s var(--ease); }
+.oc-livre-palco.arrastando .oc-solto.movendo { transition: none; z-index: 5; }
+.oc-card.fixo { height: 80px; cursor: grab; }
+.oc-solto.pegando .oc-card { cursor: grabbing; border-color: var(--borda-forte); box-shadow: 0 20px 40px -14px rgba(0, 0, 0, .85); }
+.oc-solto.pegando .oc-mais { opacity: 0; }
 .org-arvore .oc-card.compacto { padding-right: 40px; }
 .oc-grupo .oc-card.compacto { padding-right: 36px; }
 .competencia { display: grid; grid-template-columns: minmax(150px, 220px) 1fr; gap: 12px; align-items: center; }
