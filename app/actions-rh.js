@@ -20,45 +20,51 @@ function checar(error) {
 
 // ---------------------------------------------------------------- Organograma
 
-function dadosPessoa(fd) {
+const txt = (v, max) => String(v ?? '').trim().slice(0, max) || null;
+
+function dadosPessoa(d) {
   return {
-    nome: t(fd, 'nome', 120),
-    cargo: t(fd, 'cargo', 120),
-    area: t(fd, 'area', 80),
-    gestor_id: t(fd, 'gestor_id', 40),
-    email: t(fd, 'email', 160),
-    telefone: t(fd, 'telefone', 40),
-    admissao: dia(fd, 'admissao'),
+    nome: txt(d.nome, 120),
+    cargo: txt(d.cargo, 120),
+    area: txt(d.area, 80),
+    gestor_id: txt(d.gestor_id, 40),
+    email: txt(d.email, 160),
+    telefone: txt(d.telefone, 40),
+    admissao: /^\d{4}-\d{2}-\d{2}$/.test(String(d.admissao || '')) ? d.admissao : null,
   };
 }
+const CAMPOS_PESSOA = 'id, nome, cargo, area, gestor_id, email, telefone, admissao, ordem';
 
-export async function criarPessoa(formData) {
+// Cria (sem id) ou edita (com id) uma pessoa do organograma e devolve como ficou
+export async function salvarPessoa({ id, dados: entrada }) {
   await exigirRh();
-  const dados = dadosPessoa(formData);
+  const dados = dadosPessoa(entrada || {});
   if (!dados.nome) throw new Error('Preencha o nome.');
-  const { error } = await createClient().from('rh_pessoas').insert(dados);
+  const supabase = createClient();
+  if (id && dados.gestor_id) {
+    // Não deixa alguém reportar a si mesmo nem a alguém que está abaixo dele
+    const { data: todas } = await supabase.from('rh_pessoas').select('id, gestor_id');
+    const pai = Object.fromEntries((todas || []).map((x) => [x.id, x.gestor_id]));
+    let atual = dados.gestor_id;
+    for (let i = 0; atual && i < 500; i++) {
+      if (atual === id) throw new Error('Essa pessoa não pode reportar a alguém que está abaixo dela.');
+      atual = pai[atual];
+    }
+  }
+  const q = id ? supabase.from('rh_pessoas').update(dados).eq('id', id) : supabase.from('rh_pessoas').insert(dados);
+  const { data, error } = await q.select(CAMPOS_PESSOA).single();
   checar(error);
   revalidatePath('/rh/organograma');
+  return data;
 }
 
-export async function editarPessoa(formData) {
+export async function tirarPessoa({ id }) {
   await exigirRh();
-  const id = String(formData.get('id'));
-  const dados = dadosPessoa(formData);
-  if (!dados.nome) throw new Error('Preencha o nome.');
-  if (dados.gestor_id === id) dados.gestor_id = null;
-  const { error } = await createClient().from('rh_pessoas').update(dados).eq('id', id);
-  checar(error);
-  revalidatePath('/rh/organograma');
-}
-
-export async function removerPessoa(formData) {
-  await exigirRh();
-  const id = String(formData.get('id'));
   const supabase = createClient();
   // Quem reportava a essa pessoa passa a reportar ao gestor dela
   const { data: p } = await supabase.from('rh_pessoas').select('gestor_id').eq('id', id).maybeSingle();
-  await supabase.from('rh_pessoas').update({ gestor_id: p?.gestor_id || null }).eq('gestor_id', id);
+  const { error: e1 } = await supabase.from('rh_pessoas').update({ gestor_id: p?.gestor_id || null }).eq('gestor_id', id);
+  checar(e1);
   const { error } = await supabase.from('rh_pessoas').delete().eq('id', id);
   checar(error);
   revalidatePath('/rh/organograma');
