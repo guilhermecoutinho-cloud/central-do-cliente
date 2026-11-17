@@ -116,7 +116,7 @@ export default function Sidebar({ nome, admin, setores, atrasadas }) {
                   ) : (
                     <>
                       <Link href={href} className={path === href ? 'ativo' : ''}>Painel</Link>
-                      <Link href={`/setor/${s.slug}`} className={path === `/setor/${s.slug}` ? 'ativo' : ''}>Tarefas</Link>
+                      <Link href={`/setor/${s.slug}`} className={path === `/setor/${s.slug}` ? 'ativo' : ''}>{s.slug === 'financeiro' ? 'Tarefas gerais' : 'Tarefas'}</Link>
                       {(s.extras || []).map((x) => (
                         <Link key={x.href} href={x.href} className={path === x.href || path.startsWith(x.href + '/') ? 'ativo' : ''}>{x.nome}</Link>
                       ))}

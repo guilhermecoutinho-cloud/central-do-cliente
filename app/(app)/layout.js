@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { getPerfil } from '@/lib/perfil';
 import { hojeISO } from '@/lib/tarefas';
 import Sidebar from '@/components/Sidebar';
+import LembreteTarefas from '@/components/LembreteTarefas';
 import { sair } from '@/app/login/actions';
 
 export const dynamic = 'force-dynamic';
@@ -50,17 +51,16 @@ export default async function AppLayout({ children }) {
     );
   }
 
-  // Quantas tarefas minhas estão atrasadas (aparece no menu)
+  // Minhas tarefas atrasadas (aparece no menu) e as que vencem hoje (aviso ao abrir a Central)
   let atrasadas = 0;
+  let vencemHoje = 0;
   if (!perfil.semMigracao) {
     const supabase = createClient();
-    const { count } = await supabase
-      .from('tarefas')
-      .select('id', { count: 'exact', head: true })
-      .eq('responsavel', perfil.id)
-      .neq('status', 'Feito')
-      .lt('prazo', hojeISO());
-    atrasadas = count || 0;
+    const hoje = hojeISO();
+    const base = () => supabase.from('tarefas').select('id', { count: 'exact', head: true }).eq('responsavel', perfil.id).neq('status', 'Feito');
+    const [{ count: a }, { count: h }] = await Promise.all([base().lt('prazo', hoje), base().eq('prazo', hoje)]);
+    atrasadas = a || 0;
+    vencemHoje = h || 0;
   }
 
   return (
@@ -74,6 +74,7 @@ export default async function AppLayout({ children }) {
         ) : null}
         {children}
       </main>
+      <LembreteTarefas atrasadas={atrasadas} hoje={vencemHoje} />
     </div>
   );
 }

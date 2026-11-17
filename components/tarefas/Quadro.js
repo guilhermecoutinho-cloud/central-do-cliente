@@ -38,7 +38,7 @@ function CampoNovaTarefa({ onAdicionar }) {
   );
 }
 
-export default function Quadro({ setor, grupos, tarefas: iniciais_, equipe, hoje, visaoInicial = 'tabela', iaAtiva = false }) {
+export default function Quadro({ setor, secao = null, titulo = null, grupos, tarefas: iniciais_, equipe, hoje, visaoInicial = 'tabela', iaAtiva = false }) {
   const router = useRouter();
   const [tarefas, setTarefas] = useState(iniciais_);
   const [visao, setVisao] = useState(visaoInicial);
@@ -105,7 +105,7 @@ export default function Quadro({ setor, grupos, tarefas: iniciais_, equipe, hoje
     const cor = novoGrupo?.cor || 'green';
     iniciar(async () => {
       try {
-        await criarGrupo({ setor: setor.slug, nome, cor });
+        await criarGrupo({ setor: setor.slug, nome, cor, secao });
         setNovoGrupo(null);
         router.refresh();
       } catch (err) {
@@ -235,7 +235,7 @@ export default function Quadro({ setor, grupos, tarefas: iniciais_, equipe, hoje
       <div className="topo">
         <div className="pilha-p">
           <span className="selo"><SetorIcone slug={setor.slug} tamanho={24} />{setor.nome}</span>
-          <h1 className="titulo">Quadro de {setor.nome}</h1>
+          <h1 className="titulo">{titulo || `Quadro de ${setor.nome}`}</h1>
           <span className="small" style={{ color: 'var(--texto3)' }}>
             {abertas} {abertas === 1 ? 'tarefa aberta' : 'tarefas abertas'} · {qtdAtrasadas} {qtdAtrasadas === 1 ? 'atrasada' : 'atrasadas'}
           </span>

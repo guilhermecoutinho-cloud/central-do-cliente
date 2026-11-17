@@ -782,3 +782,33 @@ details.card > summary::-webkit-details-marker { display: none; }
 .notas-5 .nps-nota span { height: 38px; }
 details.card > summary.entre { list-style: none; }
 @media (max-width: 560px) { .competencia { grid-template-columns: 1fr; gap: 6px; } }
+
+/* ---------- Compras ---------- */
+.kanban-compras { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; align-items: start; }
+.kanban-compras .k-col { min-height: 320px; }
+.compra-card { width: 100%; text-align: left; font: inherit; cursor: pointer; }
+.compra-desc { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+@media (max-width: 1280px) { .kanban-compras { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 860px) { .kanban-compras { grid-template-columns: 1fr; } .kanban-compras .k-col { min-height: 0; } }
+
+/* Painel lateral (detalhe da compra) */
+.painel-fundo { position: fixed; inset: 0; z-index: 60; background: rgba(0, 0, 0, .55); display: flex; justify-content: flex-end; animation: surgir .2s ease both; }
+.painel-lateral {
+  width: min(560px, 100%); height: 100%; overflow-y: auto; background: var(--side); border-left: 1px solid var(--borda2);
+  padding: 22px; display: flex; flex-direction: column; gap: 18px; animation: deslizar .28s var(--ease) both;
+}
+@keyframes deslizar { from { transform: translateX(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* Lembrete de tarefas ao abrir a Central (canto inferior) */
+.lembrete {
+  position: fixed; right: 20px; bottom: 20px; z-index: 55; width: min(380px, calc(100vw - 32px));
+  display: flex; gap: 12px; align-items: flex-start; padding: 14px 14px 14px 16px; border-radius: 14px;
+  background: #121915; border: 1px solid var(--borda-forte); box-shadow: 0 18px 44px -12px rgba(0, 0, 0, .75), var(--brilho);
+  animation: subir .35s var(--ease) both;
+}
+.lembrete-icone { flex: 0 0 34px; width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: rgba(245, 184, 74, .14); color: var(--amber); }
+.lembrete.atrasado .lembrete-icone { background: rgba(240, 134, 110, .14); color: var(--coral); animation: sino 1s ease .4s 2; }
+@keyframes sino { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(-12deg); } 40% { transform: rotate(10deg); } 60% { transform: rotate(-6deg); } 80% { transform: rotate(4deg); } }
+.lembrete-fechar { margin-left: auto; border: 0; background: none; color: var(--muted2); font-size: 20px; line-height: 1; cursor: pointer; padding: 0 2px; }
+.lembrete-fechar:hover { color: var(--texto); }
+@media (max-width: 760px) { .lembrete { left: 16px; right: 16px; bottom: 16px; width: auto; } }

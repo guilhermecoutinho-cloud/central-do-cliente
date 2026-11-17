@@ -19,6 +19,10 @@ function limpar(t, max = 500) {
 function revalidarSetor(setor, tarefaId) {
   revalidatePath(`/setor/${setor}`);
   revalidatePath(`/setor/${setor}/painel`);
+  if (setor === 'financeiro') {
+    revalidatePath('/financeiro/pagamentos');
+    revalidatePath('/financeiro/faturamento');
+  }
   revalidatePath('/minhas-tarefas');
   revalidatePath('/');
   if (tarefaId) revalidatePath(`/tarefas/${tarefaId}`);
@@ -31,14 +35,16 @@ async function registrar(supabase, tarefaId, texto) {
 
 // ---------------------------------------------------------------- Grupos
 
-export async function criarGrupo({ setor, nome, cor }) {
+export async function criarGrupo({ setor, nome, cor, secao = null }) {
   if (!SLUGS.includes(setor)) throw new Error('Setor inválido.');
   const n = limpar(nome, 80);
   if (!n) throw new Error('Dê um nome ao grupo.');
   const supabase = createClient();
   const { data: ult } = await supabase.from('tarefa_grupos').select('ordem').eq('setor', setor).order('ordem', { ascending: false }).limit(1);
   const ordem = ult && ult.length ? ult[0].ordem + 1 : 1;
-  const { error } = await supabase.from('tarefa_grupos').insert({ setor, nome: n, cor: CORES_GRUPO[cor] ? cor : 'green', ordem });
+  const dados = { setor, nome: n, cor: CORES_GRUPO[cor] ? cor : 'green', ordem };
+  if (secao === 'financeiro' || secao === 'faturamento') dados.secao = secao;
+  const { error } = await supabase.from('tarefa_grupos').insert(dados);
   checar(error);
   revalidarSetor(setor);
 }
