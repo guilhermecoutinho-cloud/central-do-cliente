@@ -789,7 +789,7 @@ details.card > summary::-webkit-details-marker { display: none; }
 @media (max-width: 1100px) { .org-layout { grid-template-columns: 1fr; } .org-lado { position: static; } }
 
 .oc-caixa { position: relative; width: 100%; overflow: hidden; transition: height .25s var(--ease); }
-.oc-palco { position: absolute; top: 0; left: 0; width: max-content; transform-origin: 0 0; transition: transform .25s var(--ease); }
+.oc-palco { position: absolute; top: 0; left: 0; width: max-content; padding: 4px 4px 16px; transform-origin: 0 0; transition: transform .25s var(--ease); }
 .oc-palco.oculto { visibility: hidden; }
 .oc-nivel { list-style: none; margin: 0; padding: 22px 0 0; display: flex; justify-content: center; position: relative; }
 .oc-nivel::before { content: ''; position: absolute; top: 0; left: 50%; height: 22px; border-left: 1px solid var(--borda-forte); }
