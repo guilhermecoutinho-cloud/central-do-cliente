@@ -37,6 +37,14 @@ const PATHS = {
       <path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" />
     </>
   ),
+  organograma: (
+    <>
+      <rect x="9" y="3" width="6" height="5" rx="1.2" />
+      <rect x="3" y="16" width="6" height="5" rx="1.2" />
+      <rect x="15" y="16" width="6" height="5" rx="1.2" />
+      <path d="M12 8v4M6 16v-2h12v2" />
+    </>
+  ),
   grafico: (
     <>
       <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />

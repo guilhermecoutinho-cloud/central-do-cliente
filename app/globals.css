@@ -724,3 +724,61 @@ a.card.ferramenta:hover { color: var(--texto); }
 .graf-barra.link { color: var(--texto); border-radius: 8px; padding: 2px 4px; margin: -2px -4px; transition: background .15s, opacity .2s; }
 .graf-barra.link:hover { background: rgba(255, 255, 255, .03); color: var(--texto); }
 .graf-barra.apagada { opacity: .45; }
+
+/* ---------- Eventos ---------- */
+.grid-eventos { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr)); gap: 14px; }
+.grid-eventos > * { animation: entrar .45s var(--ease) backwards; }
+a.card.evento-card { color: var(--texto); gap: 14px; transition: transform .25s var(--ease), border-color .25s, box-shadow .25s; }
+a.card.evento-card:hover { color: var(--texto); }
+.evento-setores { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 14px; }
+.evento-setor { display: flex; align-items: center; gap: 8px; min-width: 0; color: var(--texto2); }
+.falta-grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: 16px; }
+
+.checklist-setor { gap: 12px; }
+.check-lista { display: flex; flex-direction: column; }
+.check-item { display: flex; align-items: center; gap: 10px; padding: 8px 4px; border-bottom: 1px solid #161e1a; min-height: 42px; animation: surgir .3s ease backwards; }
+.check-item:last-child { border-bottom: 0; }
+.check-box {
+  flex: 0 0 22px; width: 22px; height: 22px; border-radius: 7px; border: 2px solid #3a4a40; background: transparent; color: var(--verde-escuro);
+  display: inline-flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; transition: background .2s, border-color .2s, transform .15s var(--ease);
+}
+.check-box:hover:not(:disabled) { border-color: var(--verde); }
+.check-box:active:not(:disabled) { transform: scale(.9); }
+.check-box:disabled { cursor: default; }
+.check-item.feito .check-box { background: var(--verde); border-color: var(--verde); animation: pop .3s var(--ease); }
+.check-item.faltou .check-box { background: var(--coral); border-color: var(--coral); color: #2a0d06; }
+.check-titulo { flex: 1; min-width: 0; font-size: 14px; color: var(--texto); transition: color .2s; }
+.check-item.feito .check-titulo { color: var(--muted2); text-decoration: line-through; }
+.check-item.faltou .check-titulo { color: var(--coral); }
+.check-acoes { display: inline-flex; gap: 4px; opacity: 0; transition: opacity .15s; }
+.check-item:hover .check-acoes, .check-item:focus-within .check-acoes, .check-item.faltou .check-acoes { opacity: 1; }
+.check-faltou { border: 1px solid var(--borda2); background: transparent; color: var(--muted); border-radius: 999px; padding: 2px 10px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s; }
+.check-faltou:hover, .check-faltou.on { border-color: var(--coral); color: var(--coral); }
+.check-remover { border: 0; background: none; color: var(--muted2); font-size: 18px; line-height: 1; cursor: pointer; padding: 0 4px; }
+.check-remover:hover { color: var(--coral); }
+@media (hover: none) { .check-acoes { opacity: 1; } }
+
+.menu-acoes { position: relative; }
+.menu-acoes > summary { list-style: none; }
+.menu-acoes > summary::-webkit-details-marker { display: none; }
+.menu-acoes-caixa { position: absolute; right: 0; top: calc(100% + 8px); z-index: 25; width: min(420px, 90vw); box-shadow: 0 18px 44px -12px rgba(0, 0, 0, .7), var(--brilho); animation: abrir .16s var(--ease) both; }
+details.card > summary { list-style: none; }
+details.card > summary::-webkit-details-marker { display: none; }
+
+/* ---------- RH: organograma em árvore (de cima para baixo, sem rolar para o lado) ---------- */
+.org-arvore, .org-filhos { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.org-filhos { margin: 8px 0 0 22px; padding-left: 18px; border-left: 1px solid var(--borda2); }
+.org-no { position: relative; }
+.org-filhos > .org-no::before { content: ''; position: absolute; left: -18px; top: 26px; width: 14px; border-top: 1px solid var(--borda2); }
+.org-cartao {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 14px; border-radius: 12px;
+  background: var(--card2); border: 1px solid var(--borda); transition: border-color .2s;
+}
+.org-cartao:hover { border-color: var(--borda-forte); }
+.org-cartao.topo-org { border-color: rgba(98, 204, 116, .35); }
+@media (max-width: 560px) { .org-filhos { margin-left: 10px; padding-left: 12px; } .org-filhos > .org-no::before { left: -12px; width: 10px; } }
+.competencia { display: grid; grid-template-columns: minmax(150px, 220px) 1fr; gap: 12px; align-items: center; }
+.notas-5 { display: grid; grid-template-columns: repeat(5, minmax(0, 52px)); gap: 6px; }
+.notas-5 .nps-nota span { height: 38px; }
+details.card > summary.entre { list-style: none; }
+@media (max-width: 560px) { .competencia { grid-template-columns: 1fr; gap: 6px; } }

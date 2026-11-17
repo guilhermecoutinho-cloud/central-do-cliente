@@ -9,6 +9,7 @@ import { COR_PRODUTO, PRODUTOS, corAvatar, fmtDataHora, iniciais } from '@/lib/u
 import Icone from '@/components/Icone';
 import SetorIcone from '@/components/SetorIcone';
 import SemAcesso from '@/components/SemAcesso';
+import EventoCard from '@/components/EventoCard';
 
 const SETOR = Object.fromEntries(SETORES.map((s) => [s.slug, s]));
 
@@ -18,7 +19,7 @@ export default async function Lideranca() {
 
   const supabase = createClient();
   const agora = new Date();
-  const [tarefasRes, { data: equipe }, { data: clientes }, { data: encontros }, { data: porEncontro }, saldosRes] = await Promise.all([
+  const [tarefasRes, { data: equipe }, { data: clientes }, { data: encontros }, { data: porEncontro }, saldosRes, eventosRes, { data: eventoItens }] = await Promise.all([
     perfil.semMigracao
       ? Promise.resolve({ data: [] })
       : supabase.from('tarefas').select('id, titulo, setor, status, prioridade, responsavel, prazo, grupo_id, concluida_em'),
@@ -27,6 +28,8 @@ export default async function Lideranca() {
     supabase.from('encontros').select('id, produto, titulo, data').order('data'),
     supabase.from('presenca_encontro').select('encontro_id, presentes, faltas'),
     supabase.from('cashback_saldos').select('saldo'),
+    supabase.from('eventos').select('*').order('data_inicio', { ascending: true, nullsFirst: false }),
+    supabase.from('evento_itens').select('evento_id, setor, estado'),
   ]);
 
   const hoje = hojeISO();
@@ -73,6 +76,12 @@ export default async function Lideranca() {
   // Time: quem está com mais tarefas abertas
   const time = geral.pessoas.filter((p) => p.user_id).slice(0, 6);
 
+  // Eventos: os próximos e os 2 últimos realizados
+  const listaEventos = eventosRes.data || [];
+  const proxEventos = listaEventos.filter((e) => !e.data_inicio || (e.data_fim || e.data_inicio) >= hoje);
+  const ultEventos = listaEventos.filter((e) => e.data_inicio && (e.data_fim || e.data_inicio) < hoje).slice(-2).reverse();
+  const eventosLider = [...proxEventos.slice(0, 6), ...ultEventos];
+
   const hora = agora.toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' });
 
   return (
@@ -114,6 +123,22 @@ export default async function Lideranca() {
           <span className="small muted">{emOnboarding} em onboarding</span>
         </div>
       </div>
+
+      {!eventosRes.error ? (
+        <section className="pilha">
+          <div className="entre">
+            <h2 className="h2">Eventos</h2>
+            <Link href="/eventos" className="small" style={{ fontWeight: 600 }}>Todos os eventos e criar novo</Link>
+          </div>
+          {eventosLider.length ? (
+            <div className="grid-eventos">
+              {eventosLider.map((e) => <EventoCard key={e.id} ev={e} itens={(eventoItens || []).filter((i) => i.evento_id === e.id)} />)}
+            </div>
+          ) : (
+            <div className="vazio" style={{ padding: 24, fontSize: 14 }}>Nenhum evento cadastrado. <Link href="/eventos">Criar o primeiro</Link></div>
+          )}
+        </section>
+      ) : null}
 
       <section className="pilha">
         <div className="entre">

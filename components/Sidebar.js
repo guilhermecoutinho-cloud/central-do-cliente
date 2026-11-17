@@ -11,7 +11,9 @@ import { iniciais } from '@/lib/util';
 function setorAtivo(path) {
   if (ROTAS_SUCESSO.some((r) => path === r || path.startsWith(r + '/'))) return 'sucesso';
   const m = path.match(/^\/setor\/([^/]+)/);
-  return m ? m[1] : null;
+  if (m) return m[1];
+  const extra = SETORES.find((s) => (s.extras || []).some((x) => path === x.href || path.startsWith(x.href + '/')));
+  return extra ? extra.slug : null;
 }
 
 export default function Sidebar({ nome, admin, setores, atrasadas }) {
@@ -113,8 +115,11 @@ export default function Sidebar({ nome, admin, setores, atrasadas }) {
                     })
                   ) : (
                     <>
-                      <Link href={href} className={path.endsWith('/painel') ? 'ativo' : ''}>Painel</Link>
-                      <Link href={`/setor/${s.slug}`} className={path.endsWith('/painel') ? '' : 'ativo'}>Tarefas</Link>
+                      <Link href={href} className={path === href ? 'ativo' : ''}>Painel</Link>
+                      <Link href={`/setor/${s.slug}`} className={path === `/setor/${s.slug}` ? 'ativo' : ''}>Tarefas</Link>
+                      {(s.extras || []).map((x) => (
+                        <Link key={x.href} href={x.href} className={path === x.href || path.startsWith(x.href + '/') ? 'ativo' : ''}>{x.nome}</Link>
+                      ))}
                     </>
                   )}
                 </div>

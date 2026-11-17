@@ -108,6 +108,12 @@ Opcional: `GEMINI_MODELO` para trocar o modelo (padrão `gemini-3.5-flash-lite`)
 - Time: **Sucesso do Cliente → Área do aluno** tem as abas Treinamentos, Ferramentas (links liberados para os alunos), Conexões (ocultar/excluir cadastros, cadastrar parceiros) e NPS (nota, distribuição e comentários).
 - Aluno: abas Treinamentos, Próximos encontros (do produto dele; o link aparece se o acesso estiver liberado na aba Time), Ferramentas, Conexões (fornecedores, clientes e parceiros estratégicos, e o próprio cadastro) e Avaliar (NPS de 0 a 10).
 
+## Eventos (checklist por setor) e setor de RH
+
+- Rode **uma vez** o arquivo `supabase/eventos-rh.sql` no SQL Editor.
+- **Eventos:** na Visão da liderança aparece um cartão por evento. Ao abrir, cada setor (Vendas, Marketing, Eventos, Financeiro) tem o seu checklist: marcar feito, marcar que faltou / deixou de ter, acrescentar itens. Embaixo, a avaliação do evento (nota, o que funcionou, o que faltou). Novos eventos em **Eventos → Eventos e checklists** (administrador ou setor de Eventos). O checklist padrão fica em `lib/eventos.js`.
+- **RH:** novo setor com Painel, Tarefas, Organograma, Avaliações de desempenho e Reuniões (pauta e ata). Libere o acesso na grade Acesso por usuário.
+
 ## Cashback e gamificação
 
 - Quem já tinha o banco criado: rode **uma vez** o arquivo `supabase/cashback.sql` no SQL Editor. Quem for criar do zero, o `schema.sql` já inclui.
