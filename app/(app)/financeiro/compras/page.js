@@ -1,66 +1,92 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { getPerfil, podeSetor } from '@/lib/perfil';
-import { hojeISO } from '@/lib/tarefas';
 import { fmtReal } from '@/lib/compras';
-import QuadroCompras from '@/components/QuadroCompras';
+import QuadroCompras, { NovoPipeline } from '@/components/QuadroCompras';
 import SetorIcone from '@/components/SetorIcone';
 import SemAcesso from '@/components/SemAcesso';
 
+// Compras > pipeline (CAUP geral, Ambição...) > kanban com colunas editáveis
 export default async function Compras({ searchParams }) {
   const perfil = await getPerfil();
   if (!podeSetor(perfil, 'financeiro')) return <SemAcesso setor="Financeiro" />;
 
   const supabase = createClient();
-  const [{ data: todas, error }, { data: eventos }, { data: equipe }] = await Promise.all([
-    supabase
-      .from('compras')
-      .select('id, titulo, descricao, quantidade, valor, fornecedor, evento_id, etapa, responsavel, prazo, ordem, criado_por, criado_em, compra_comentarios(count)')
-      .order('criado_em', { ascending: false }),
-    supabase.from('eventos').select('id, nome, data_inicio, data_fim').order('data_inicio', { ascending: true, nullsFirst: false }),
+  const [{ data: pipelines, error }, { data: eventos }, { data: equipe }, { data: contagem }] = await Promise.all([
+    supabase.from('compra_pipelines').select('id, nome, evento_id, ordem').order('ordem').order('criado_em'),
+    supabase.from('eventos').select('id, nome, data_inicio').order('data_inicio', { ascending: false, nullsFirst: false }),
     supabase.from('equipe').select('user_id, nome').order('nome'),
+    supabase.from('compras').select('pipeline_id'),
   ]);
   if (error) {
-    return <div className="aviso t-amber">Falta ativar as compras: rode os arquivos supabase/eventos-rh.sql e supabase/financeiro-compras.sql no SQL Editor do Supabase.</div>;
+    return <div className="aviso t-amber">Falta ativar os pipelines de compras: rode de novo o arquivo supabase/financeiro-compras.sql no SQL Editor do Supabase.</div>;
   }
 
-  const lista = (todas || []).map((c) => ({ ...c, comentarios: c.compra_comentarios?.[0]?.count || 0, compra_comentarios: undefined }));
-  const hoje = hojeISO();
-  // Abas: eventos que têm compras ou que ainda vão acontecer
-  const evs = (eventos || []).filter((e) => lista.some((c) => c.evento_id === e.id) || !e.data_inicio || (e.data_fim || e.data_inicio) >= hoje);
-  const filtro = searchParams?.evento === 'geral' ? 'geral' : evs.some((e) => e.id === searchParams?.evento) ? searchParams.evento : null;
-  const doFiltro = filtro === 'geral' ? lista.filter((c) => !c.evento_id) : filtro ? lista.filter((c) => c.evento_id === filtro) : lista;
+  const lista = pipelines || [];
+  const topo = (
+    <div className="topo">
+      <div className="pilha-p">
+        <span className="selo"><SetorIcone slug="financeiro" tamanho={24} />Financeiro</span>
+        <h1 className="titulo">Compras</h1>
+        <span className="small" style={{ color: 'var(--texto3)' }}>Um pipeline para cada evento ou frente. Cada um tem o seu kanban.</span>
+      </div>
+      <NovoPipeline eventos={eventos || []} />
+    </div>
+  );
+  if (!lista.length) {
+    return (
+      <>
+        {topo}
+        <div className="card vazio-card">Nenhum pipeline ainda. Crie o primeiro em “Novo pipeline”.</div>
+      </>
+    );
+  }
 
-  const abertas = doFiltro.filter((c) => c.etapa !== 'finalizado');
+  const atual = lista.find((p) => p.id === searchParams?.p) || lista[0];
+  const [{ data: etapas }, { data: compras }] = await Promise.all([
+    supabase.from('compra_etapas').select('id, pipeline_id, nome, cor, ordem').eq('pipeline_id', atual.id).order('ordem').order('nome'),
+    supabase
+      .from('compras')
+      .select('id, titulo, descricao, quantidade, valor, fornecedor, evento_id, pipeline_id, etapa_id, responsavel, prazo, ordem, criado_por, criado_em, compra_comentarios(count)')
+      .eq('pipeline_id', atual.id)
+      .order('criado_em', { ascending: false }),
+  ]);
+
+  const cols = etapas || [];
+  const itens = (compras || []).map((c) => ({ ...c, comentarios: c.compra_comentarios?.[0]?.count || 0, compra_comentarios: undefined }));
+  const ultima = cols.length > 1 ? cols[cols.length - 1].id : null;
+  const abertas = itens.filter((c) => !ultima || c.etapa_id !== ultima);
   const valorAberto = abertas.reduce((s, c) => s + Number(c.valor || 0), 0);
-  const valorFinal = doFiltro.filter((c) => c.etapa === 'finalizado').reduce((s, c) => s + Number(c.valor || 0), 0);
-  const contar = (id) => (id === 'geral' ? lista.filter((c) => !c.evento_id).length : lista.filter((c) => c.evento_id === id).length);
+  const valorFinal = itens.filter((c) => ultima && c.etapa_id === ultima).reduce((s, c) => s + Number(c.valor || 0), 0);
+  const qtd = (id) => (contagem || []).filter((c) => c.pipeline_id === id).length;
 
   return (
     <>
-      <div className="topo">
-        <div className="pilha-p">
-          <span className="selo"><SetorIcone slug="financeiro" tamanho={24} />Financeiro</span>
-          <h1 className="titulo">Compras</h1>
-          <span className="small" style={{ color: 'var(--texto3)' }}>Separadas por evento. O que não é de evento fica em CAUP geral.</span>
-        </div>
-      </div>
+      {topo}
 
-      <nav className="segmentos" aria-label="Compras por evento" style={{ alignSelf: 'flex-start' }}>
-        <Link href="/financeiro/compras" className={!filtro ? 'ativo' : ''}>Todas ({lista.length})</Link>
-        <Link href="/financeiro/compras?evento=geral" className={filtro === 'geral' ? 'ativo' : ''}>CAUP geral ({contar('geral')})</Link>
-        {evs.map((e) => (
-          <Link key={e.id} href={`/financeiro/compras?evento=${e.id}`} className={filtro === e.id ? 'ativo' : ''}>{e.nome} ({contar(e.id)})</Link>
+      <nav className="segmentos" aria-label="Pipelines de compras" style={{ alignSelf: 'flex-start' }}>
+        {lista.map((p) => (
+          <Link key={p.id} href={`/financeiro/compras?p=${p.id}`} className={p.id === atual.id ? 'ativo' : ''}>
+            {p.nome} ({qtd(p.id)})
+          </Link>
         ))}
       </nav>
 
       <div className="grid-kpi">
-        <div className="kpi"><span className="muted">Compras em aberto</span><span className="valor">{abertas.length}</span><span className="small muted">ainda não finalizadas</span></div>
+        <div className="kpi"><span className="muted">Compras em aberto</span><span className="valor">{abertas.length}</span><span className="small muted">fora da última coluna</span></div>
         <div className="kpi"><span className="muted">Valor em aberto</span><span className="valor" style={{ fontSize: 26 }}>{fmtReal(valorAberto) || 'R$ 0,00'}</span><span className="small muted">soma dos valores preenchidos</span></div>
-        <div className="kpi"><span className="muted">Já comprado</span><span className="valor" style={{ fontSize: 26 }}>{fmtReal(valorFinal) || 'R$ 0,00'}</span><span className="small muted">compras finalizadas</span></div>
+        <div className="kpi"><span className="muted">Já comprado</span><span className="valor" style={{ fontSize: 26 }}>{fmtReal(valorFinal) || 'R$ 0,00'}</span><span className="small muted">{ultima ? 'na coluna ' + cols[cols.length - 1].nome : 'última coluna'}</span></div>
       </div>
 
-      <QuadroCompras key={filtro || 'todas'} compras={doFiltro} eventos={eventos || []} equipe={equipe || []} eventoFiltro={filtro} />
+      <QuadroCompras
+        key={atual.id}
+        pipeline={atual}
+        pipelines={lista}
+        etapas={cols}
+        compras={itens}
+        eventos={eventos || []}
+        equipe={equipe || []}
+      />
     </>
   );
 }

@@ -784,12 +784,37 @@ details.card > summary.entre { list-style: none; }
 @media (max-width: 560px) { .competencia { grid-template-columns: 1fr; gap: 6px; } }
 
 /* ---------- Compras ---------- */
-.kanban-compras { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; align-items: start; }
+.kanban-compras { display: grid; grid-template-columns: repeat(var(--n, 5), minmax(0, 1fr)); gap: 12px; align-items: start; }
+.kanban-compras.muitas { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
 .kanban-compras .k-col { min-height: 320px; }
 .compra-card { width: 100%; text-align: left; font: inherit; cursor: pointer; }
 .compra-desc { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-@media (max-width: 1280px) { .kanban-compras { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-@media (max-width: 860px) { .kanban-compras { grid-template-columns: 1fr; } .kanban-compras .k-col { min-height: 0; } }
+@media (max-width: 1280px) { .kanban-compras, .kanban-compras.muitas { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); } }
+@media (max-width: 860px) { .kanban-compras, .kanban-compras.muitas { grid-template-columns: 1fr; } .kanban-compras .k-col { min-height: 0; } }
+
+/* Editor de colunas do kanban de compras */
+.coluna-edit { display: flex; flex-direction: column; gap: 10px; padding: 12px; border-radius: 12px; background: var(--card); border: 1px solid var(--borda); }
+.coluna-edit.nova { border-style: dashed; background: transparent; }
+.coluna-edit-linha { display: flex; gap: 8px; align-items: center; }
+.coluna-edit-linha .input { flex: 1 1 auto; min-width: 0; padding: 9px 12px; }
+.coluna-edit-acoes { display: inline-flex; gap: 4px; flex: 0 0 auto; }
+.icone-btn {
+  width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; border-radius: 9px;
+  border: 1px solid var(--borda2); background: var(--card2); color: var(--texto3); cursor: pointer; transition: border-color .2s, color .2s;
+}
+.icone-btn:hover:not(:disabled) { border-color: var(--borda-forte); color: var(--texto); }
+.icone-btn:disabled { opacity: .35; cursor: default; }
+.cores { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+.cor-bola { width: 22px; height: 22px; border-radius: 50%; border: 2px solid transparent; padding: 0; cursor: pointer; background-clip: padding-box; transition: transform .15s var(--ease); }
+.cor-bola:hover { transform: scale(1.1); }
+.cor-bola.ativa { box-shadow: 0 0 0 2px var(--side), 0 0 0 4px var(--texto3); }
+.c-gray { background-color: #5f6e65; }
+.c-amber { background-color: var(--amber); }
+.c-blue { background-color: var(--blue); }
+.c-violet { background-color: var(--violet); }
+.c-teal { background-color: var(--teal); }
+.c-green { background-color: var(--green); }
+.c-coral { background-color: var(--coral); }
 
 /* Painel lateral (detalhe da compra) */
 .painel-fundo { position: fixed; inset: 0; z-index: 60; background: rgba(0, 0, 0, .55); display: flex; justify-content: flex-end; animation: surgir .2s ease both; }
