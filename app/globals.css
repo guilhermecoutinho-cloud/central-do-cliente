@@ -923,61 +923,63 @@ details.card > summary.entre { list-style: none; }
 .aviso-nova-lista li { display: flex; flex-direction: column; gap: 1px; padding-left: 10px; border-left: 2px solid rgba(98, 204, 116, .45); min-width: 0; }
 .aviso-nova-titulo { color: var(--texto); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-/* Marketing > Social mídia > Calendário de conteúdo (visual do calendário da casa: preto e dourado) */
+/* Marketing > Social mídia > Calendário de conteúdo (visual do calendário da casa: preto e dourado, compacto como um pôster) */
 .cc {
   --ouro: #d4ae62; --creme: #f4efe4; --areia: #a39a88;
-  display: flex; flex-direction: column; gap: 22px; padding: 32px 34px; border-radius: 18px; color: var(--creme);
-  background: #0e0d0b; border: 1px solid rgba(212, 174, 98, .16);
+  display: flex; flex-direction: column; gap: 16px; padding: 30px 32px 24px; border-radius: 16px; color: var(--creme);
+  background: #0e0d0b; border: 1px solid rgba(212, 174, 98, .16); max-width: 1440px; width: 100%;
 }
 .cc-cabeca { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
-.cc-kicker { color: var(--ouro); font-size: 12px; font-weight: 700; letter-spacing: .32em; text-transform: uppercase; }
-.cc-titulo { margin: 0; font-family: var(--fonte-serifada, Georgia), Georgia, 'Times New Roman', serif; font-weight: 700; font-size: clamp(30px, 4vw, 44px); line-height: 1.1; color: var(--creme); }
+.cc-kicker { color: var(--ouro); font-size: 11.5px; font-weight: 700; letter-spacing: .3em; text-transform: uppercase; }
+.cc-titulo { margin: 0; font-family: var(--fonte-serifada, Georgia), Georgia, 'Times New Roman', serif; font-weight: 700; font-size: clamp(28px, 2.9vw, 40px); line-height: 1.1; color: var(--creme); }
 .cc-titulo em { color: var(--ouro); font-style: italic; font-weight: 600; }
 .cc-logo {
-  display: block; width: 176px; height: 50px; flex: 0 0 auto; background: var(--ouro);
+  display: block; width: 150px; height: 42px; flex: 0 0 auto; background: var(--ouro);
   -webkit-mask: url(/logo-caup.png) center / contain no-repeat; mask: url(/logo-caup.png) center / contain no-repeat;
 }
-.cc-funil { list-style: none; margin: 0; padding: 0; display: flex; align-items: center; }
+.cc-funil { list-style: none; margin: 2px 0 0; padding: 0; display: flex; align-items: center; }
 .cc-funil li { display: flex; align-items: center; flex: 1 1 0; min-width: 0; }
 .cc-etapa {
-  flex: 1 1 auto; min-width: 0; padding: 9px 10px; text-align: center; font-size: 13px; font-weight: 600; color: var(--creme);
+  flex: 1 1 auto; min-width: 0; padding: 7px 8px; text-align: center; font-size: 12px; font-weight: 600; color: var(--creme);
   border: 1px solid rgba(212, 174, 98, .55); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.cc-seta { display: flex; flex: 0 0 auto; padding: 0 12px; color: var(--ouro); }
-.cc-regras { display: flex; flex-wrap: wrap; gap: 6px 28px; font-size: 13px; color: #cfc7b6; }
+.cc-seta { display: flex; flex: 0 0 auto; padding: 0 10px; color: var(--ouro); }
+.cc-seta svg { width: 16px; height: 16px; }
+.cc-regras { display: flex; flex-wrap: wrap; gap: 4px 26px; font-size: 12px; color: #cfc7b6; }
 .cc-regras b { color: var(--creme); font-weight: 700; }
-.cc-semanas { display: grid; grid-template-columns: repeat(var(--n, 5), minmax(0, 1fr)); gap: 14px; align-items: start; }
-.cc-semana { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
-.cc-semana-topo { display: flex; flex-direction: column; gap: 6px; padding-bottom: 10px; margin-bottom: 4px; border-bottom: 2px solid var(--ouro); }
-.cc-semana-datas { font-family: var(--fonte-serifada, Georgia), Georgia, serif; font-size: 22px; font-weight: 700; color: var(--creme); }
-.cc-semana-tags { font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--areia); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cc-semanas { display: grid; grid-template-columns: repeat(var(--n, 5), minmax(0, 1fr)); gap: 12px; align-items: start; margin-top: 4px; }
+.cc-semana { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.cc-semana-topo { display: flex; flex-direction: column; gap: 5px; padding-bottom: 8px; margin-bottom: 3px; border-bottom: 2px solid var(--ouro); }
+.cc-semana-datas { font-family: var(--fonte-serifada, Georgia), Georgia, serif; font-size: 19px; font-weight: 700; line-height: 1.15; color: var(--creme); }
+.cc-semana-tags { font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--areia); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cc-post {
-  display: flex; flex-direction: column; gap: 6px; padding: 12px; text-align: left; font: inherit; color: inherit; cursor: pointer;
-  background: #15130f; border: 1px solid rgba(255, 255, 255, .09); transition: border-color .2s, opacity .2s;
+  display: flex; flex-direction: column; gap: 4px; padding: 9px 10px 10px; text-align: left; font: inherit; color: inherit; cursor: pointer;
+  background: #14120f; border: 1px solid rgba(212, 174, 98, .16); transition: border-color .2s, opacity .2s;
 }
-.cc-post:hover { border-color: rgba(212, 174, 98, .5); }
+.cc-post:hover { border-color: rgba(212, 174, 98, .55); }
 .cc-post.hoje { border-color: var(--ouro); }
 .cc-post.feito { opacity: .7; }
 .cc-post.feito:hover { opacity: 1; }
-.cc-post-linha { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; font-size: 12.5px; }
+.cc-post-linha { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; font-size: 11.5px; line-height: 1.3; }
 .cc-post-linha b { color: var(--creme); font-weight: 700; }
-.cc-campanha { color: var(--ouro); font-size: 11.5px; font-weight: 700; text-align: right; }
-.cc-post-texto { font-size: 13px; line-height: 1.4; color: #ddd5c4; }
-.cc-formato { background: var(--ouro); color: #17130a; font-size: 10.5px; font-weight: 700; padding: 2px 7px; letter-spacing: .02em; }
-.cc-status { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+.cc-campanha { color: var(--ouro); font-size: 10.5px; font-weight: 700; text-align: right; }
+.cc-post-texto { font-size: 12px; line-height: 1.35; color: #ddd5c4; }
+.cc-formato { background: var(--ouro); color: #17130a; font-size: 9.5px; font-weight: 700; line-height: 1.5; padding: 1px 6px; letter-spacing: .02em; }
+.cc-status { display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 600; white-space: nowrap; }
 .cc-status.ok { color: var(--verde); }
 .cc-status.hoje { color: var(--ouro); }
 .cc-status.atrasado { color: var(--coral); }
 .cc-mais {
-  padding: 9px; font: inherit; font-size: 12.5px; color: var(--areia); cursor: pointer; background: transparent;
-  border: 1px dashed rgba(212, 174, 98, .28); transition: color .2s, border-color .2s;
+  padding: 7px; font: inherit; font-size: 11.5px; color: var(--areia); cursor: pointer; background: transparent;
+  border: 1px dashed rgba(212, 174, 98, .25); opacity: .7; transition: color .2s, border-color .2s, opacity .2s;
 }
-.cc-mais:hover { color: var(--ouro); border-color: rgba(212, 174, 98, .6); }
-.cc-eventos { display: grid; grid-template-columns: repeat(var(--n, 5), minmax(0, 1fr)); gap: 14px; }
-.cc-evento { display: flex; flex-direction: column; gap: 6px; padding: 12px; border: 1px solid rgba(212, 174, 98, .45); min-width: 0; }
-.cc-evento-nome { color: var(--ouro); font-size: 13px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; }
-.cc-evento-datas { font-size: 11.5px; color: var(--areia); }
-.cc-nota { margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--areia); }
+.cc-mais:hover { color: var(--ouro); border-color: rgba(212, 174, 98, .6); opacity: 1; }
+.cc-eventos { display: grid; grid-template-columns: repeat(var(--n, 5), minmax(0, 1fr)); gap: 12px; margin-top: 6px; }
+.cc-evento { display: flex; flex-direction: column; gap: 5px; padding: 10px 11px; border: 1px solid rgba(212, 174, 98, .45); min-width: 0; }
+.cc-evento-nome { color: var(--ouro); font-size: 12px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; }
+.cc-evento-datas { font-size: 10.5px; color: var(--areia); }
+.cc-nota { margin: 0; font-size: 11.5px; line-height: 1.5; color: var(--areia); }
+.cc-rodape { font-size: 11.5px; }
 .cc .btn-link { color: var(--ouro); }
 .cc-link-box { display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 12px; background: var(--card); border: 1px solid var(--borda2); }
 .cc-upload {

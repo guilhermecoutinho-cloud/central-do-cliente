@@ -41,7 +41,7 @@ export default async function PaginaCalendario({ searchParams }) {
   ]);
 
   return (
-    <div className={serifada.variable}>
+    <div className={serifada.variable} style={{ display: 'contents' }}>
       <CalendarioConteudo
         key={atual?.id || 'vazio'}
         calendarios={lista.map(({ id, inicio, fim, titulo }) => ({ id, inicio, fim, titulo }))}
