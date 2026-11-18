@@ -24,7 +24,7 @@ export default function CriarComIA({ setor, grupos, equipe, onFechar, onCriadas 
       if (r.erro) setErro(r.erro);
       else setItens(r.tarefas);
     } catch (e) {
-      setErro(e?.message || 'Não foi possível falar com a IA.');
+      setErro('Não foi possível falar com a IA (a conexão caiu ou demorou demais). Tente de novo.');
     } finally {
       setCarregando(false);
     }
@@ -34,10 +34,15 @@ export default function CriarComIA({ setor, grupos, equipe, onFechar, onCriadas 
     setErro('');
     setCarregando(true);
     try {
-      const n = await criarTarefasEmLote({ setor: setor.slug, tarefas: itens });
-      onCriadas(n);
+      const r = await criarTarefasEmLote({ setor: setor.slug, tarefas: itens });
+      if (r?.erro || !r?.criadas) {
+        setErro(r?.erro || 'Nenhuma tarefa foi criada. Tente de novo.');
+        setCarregando(false);
+        return;
+      }
+      onCriadas(r.criadas);
     } catch (e) {
-      setErro(e?.message || 'Não foi possível criar as tarefas.');
+      setErro('Não foi possível criar as tarefas (a conexão caiu ou demorou demais). Confira o quadro antes de tentar de novo.');
       setCarregando(false);
     }
   }

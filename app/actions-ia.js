@@ -9,10 +9,7 @@ import { getPerfil, podeSetor } from '@/lib/perfil';
 import { setorPorSlug } from '@/lib/setores';
 import { NOMES_PRIORIDADE, NOMES_STATUS, hojeISO } from '@/lib/tarefas';
 import { acharPessoa, lerData, lerPrioridade, lerStatus, norm } from '@/lib/conector';
-
-const CHAVE = () => (process.env.GEMINI_API_KEY || '').trim();
-const MODELO = () => (process.env.GEMINI_MODELO || 'gemini-3.5-flash-lite').trim();
-const MODELO_RESERVA = 'gemini-2.5-flash';
+import { geminiLigado, perguntarGemini } from '@/lib/gemini';
 const DIAS = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
 
 const ESQUEMA = {
@@ -58,26 +55,20 @@ function instrucoes({ setor, hoje, grupos, equipe }) {
   ].join('\n');
 }
 
-async function chamarGemini(modelo, sistema, texto) {
-  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelo)}:generateContent`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': CHAVE() },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: sistema }] },
-      contents: [{ role: 'user', parts: [{ text: texto }] }],
-      generationConfig: { temperature: 0.2, responseMimeType: 'application/json', responseSchema: ESQUEMA },
-    }),
-    cache: 'no-store',
-  });
-  const corpo = await r.json().catch(() => ({}));
-  return { status: r.status, corpo };
+export async function sugerirTarefas(entrada) {
+  try {
+    return await separarTarefas(entrada);
+  } catch (e) {
+    console.error('[criar com IA] separar:', e);
+    return { erro: 'Não foi possível separar as tarefas agora: ' + (e?.message || 'erro inesperado') + '. Tente de novo.' };
+  }
 }
 
-export async function sugerirTarefas({ setor: slug, texto }) {
+async function separarTarefas({ setor: slug, texto }) {
   const perfil = await getPerfil();
   const setor = setorPorSlug(slug);
   if (!setor || !podeSetor(perfil, slug)) return { erro: 'Você não tem acesso a este setor.' };
-  if (!CHAVE()) return { erro: 'A IA ainda não foi ligada. O administrador precisa colocar a GEMINI_API_KEY na Vercel.' };
+  if (!geminiLigado()) return { erro: 'A IA ainda não foi ligada. O administrador precisa colocar a GEMINI_API_KEY na Vercel.' };
   const t = String(texto || '').trim().slice(0, 15000);
   if (t.length < 3) return { erro: 'Cole ou escreva as tarefas no campo.' };
 
@@ -89,18 +80,9 @@ export async function sugerirTarefas({ setor: slug, texto }) {
   const hoje = hojeISO();
   const sistema = instrucoes({ setor, hoje, grupos: grupos || [], equipe: equipe || [] });
 
-  let { status, corpo } = await chamarGemini(MODELO(), sistema, t);
-  if (status === 404 && MODELO() !== MODELO_RESERVA) ({ status, corpo } = await chamarGemini(MODELO_RESERVA, sistema, t));
-
-  if (status === 429) return { erro: 'A IA atingiu o limite de uso por agora. Tente de novo em 1 minuto.' };
-  if (status === 400 || status === 403) {
-    const msg = corpo?.error?.message || '';
-    if (/api key/i.test(msg)) return { erro: 'A chave do Gemini (GEMINI_API_KEY) não é válida. Confira na Vercel.' };
-    return { erro: 'O Gemini recusou o pedido: ' + (msg || 'erro ' + status) };
-  }
-  if (status !== 200) return { erro: 'O Gemini não respondeu agora (erro ' + status + '). Tente de novo.' };
-
-  const bruto = (corpo?.candidates?.[0]?.content?.parts || []).map((p) => p.text || '').join('');
+  const r = await perguntarGemini({ sistema, partes: [{ text: t }], esquema: ESQUEMA });
+  if (r.erro) return { erro: r.erro };
+  const bruto = r.texto;
   let lista;
   try {
     lista = JSON.parse(bruto).tarefas;
@@ -128,7 +110,17 @@ export async function sugerirTarefas({ setor: slug, texto }) {
   return { tarefas };
 }
 
-export async function criarTarefasEmLote({ setor: slug, tarefas }) {
+// Devolve { criadas } ou { erro } (em produção a Vercel esconde a mensagem de erros lançados, então devolvemos o texto)
+export async function criarTarefasEmLote(entrada) {
+  try {
+    return { criadas: await gravarLote(entrada) };
+  } catch (e) {
+    console.error('[criar com IA] gravar:', e);
+    return { erro: 'Não foi possível criar as tarefas: ' + (e?.message || 'erro inesperado') };
+  }
+}
+
+async function gravarLote({ setor: slug, tarefas }) {
   const perfil = await getPerfil();
   if (!setorPorSlug(slug) || !podeSetor(perfil, slug)) throw new Error('Você não tem acesso a este setor.');
   const lista = (Array.isArray(tarefas) ? tarefas : []).slice(0, 50);

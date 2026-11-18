@@ -6,11 +6,9 @@ import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { getPerfil, podeSetor } from '@/lib/perfil';
 import { hojeISO } from '@/lib/tarefas';
+import { geminiLigado, perguntarGemini } from '@/lib/gemini';
 import { ESQUEMA_CALENDARIO, PADRAO, ehData, instrucoesCalendario, normalizarCalendario, proximoPeriodo } from '@/lib/calendario';
 
-const CHAVE_GEMINI = () => (process.env.GEMINI_API_KEY || '').trim();
-const MODELO = () => (process.env.GEMINI_MODELO || 'gemini-3.5-flash-lite').trim();
-const MODELO_RESERVA = 'gemini-2.5-flash';
 const CAMPOS_POST = 'id, calendario_id, data, data_fim, campanha, descricao, formato, link, feito, feito_em, responsavel, ordem';
 
 async function exigirMarketing() {
@@ -155,25 +153,10 @@ export async function excluirPost({ id }) {
 
 // ---------------------------------------------------------------- Importar com IA (texto ou imagem)
 
-async function chamarGemini(modelo, partes) {
-  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelo)}:generateContent`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': CHAVE_GEMINI() },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: instrucoesCalendario(hojeISO()) }] },
-      contents: [{ role: 'user', parts: partes }],
-      generationConfig: { temperature: 0.1, responseMimeType: 'application/json', responseSchema: ESQUEMA_CALENDARIO },
-    }),
-    cache: 'no-store',
-  });
-  const corpo = await r.json().catch(() => ({}));
-  return { status: r.status, corpo };
-}
-
 // A pessoa cola o calendário (texto) ou manda a imagem; a IA monta no padrão e já grava
 export async function importarCalendario({ texto, imagem, tipo }) {
   const perfil = await exigirMarketing();
-  if (!CHAVE_GEMINI()) return { erro: 'A IA ainda não foi ligada. O administrador precisa colocar a GEMINI_API_KEY na Vercel.' };
+  if (!geminiLigado()) return { erro: 'A IA ainda não foi ligada. O administrador precisa colocar a GEMINI_API_KEY na Vercel.' };
   const t = String(texto || '').trim().slice(0, 20000);
   const img = typeof imagem === 'string' && imagem.length > 100 ? imagem.replace(/^data:[^,]+,/, '') : null;
   if (!t && !img) return { erro: 'Cole o calendário ou escolha a imagem.' };
@@ -183,14 +166,11 @@ export async function importarCalendario({ texto, imagem, tipo }) {
   if (img) partes.push({ inlineData: { mimeType: /^image\/(png|jpeg|webp)$/.test(tipo || '') ? tipo : 'image/jpeg', data: img } });
   partes.push({ text: t || 'Monte o calendário a partir desta imagem.' });
 
-  let { status, corpo } = await chamarGemini(MODELO(), partes);
-  if (status === 404 && MODELO() !== MODELO_RESERVA) ({ status, corpo } = await chamarGemini(MODELO_RESERVA, partes));
-  if (status === 429) return { erro: 'A IA atingiu o limite de uso por agora. Tente de novo em 1 minuto.' };
-  if (status !== 200) return { erro: 'A IA não conseguiu ler agora (erro ' + status + '). ' + (corpo?.error?.message || 'Tente de novo.') };
-
+  const r = await perguntarGemini({ sistema: instrucoesCalendario(hojeISO()), partes, esquema: ESQUEMA_CALENDARIO, temperatura: 0.1 });
+  if (r.erro) return { erro: r.erro };
   let bruto;
   try {
-    bruto = JSON.parse((corpo?.candidates?.[0]?.content?.parts || []).map((p) => p.text || '').join(''));
+    bruto = JSON.parse(r.texto);
   } catch {
     return { erro: 'Não consegui entender a resposta da IA. Tente de novo.' };
   }

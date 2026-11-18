@@ -9,6 +9,8 @@ import AvisoConteudoHoje from '@/components/AvisoConteudoHoje';
 import { sair } from '@/app/login/actions';
 
 export const dynamic = 'force-dynamic';
+// A IA (Gemini) pode levar alguns segundos: dá até 60s para as ações responderem
+export const maxDuration = 60;
 
 function Aviso({ titulo, children }) {
   return (
