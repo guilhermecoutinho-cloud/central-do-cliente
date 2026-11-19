@@ -3,8 +3,8 @@ import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { getPerfil, podeSetor } from '@/lib/perfil';
 import { setorPorSlug } from '@/lib/setores';
-import { SETORES_EVENTO, TIPOS_EVENTO, fmtPeriodo, momentoEvento, resumoItens } from '@/lib/eventos';
-import { avaliarEvento, editarEvento, excluirEvento } from '@/app/actions-eventos';
+import { CAMPOS_BRIEFING, SETORES_EVENTO, TIPOS_EVENTO, diaSemana, fmtPeriodo, momentoEvento, resumoItens } from '@/lib/eventos';
+import { avaliarEvento, editarEvento, excluirEvento, salvarBriefing } from '@/app/actions-eventos';
 import ChecklistSetor from '@/components/ChecklistSetor';
 import SetorIcone from '@/components/SetorIcone';
 import BotaoConfirmar from '@/components/BotaoConfirmar';
@@ -12,9 +12,10 @@ import BotaoConfirmar from '@/components/BotaoConfirmar';
 export default async function EventoPagina({ params }) {
   const perfil = await getPerfil();
   const supabase = createClient();
-  const [{ data: ev, error }, { data: itens }] = await Promise.all([
+  const [{ data: ev, error }, { data: itens }, { data: equipe }] = await Promise.all([
     supabase.from('eventos').select('*').eq('id', params.id).maybeSingle(),
     supabase.from('evento_itens').select('*').eq('evento_id', params.id).order('ordem').order('atualizado_em'),
+    supabase.from('equipe').select('user_id, nome').order('nome'),
   ]);
   if (error) {
     return <div className="aviso t-amber">Falta ativar os eventos: rode o arquivo supabase/eventos-rh.sql no SQL Editor do Supabase.</div>;
@@ -29,6 +30,10 @@ export default async function EventoPagina({ params }) {
   const geral = resumoItens(lista.filter((i) => setoresVisiveis.includes(i.setor)));
   const pendentes = lista.filter((i) => i.estado === 'pendente' && setoresVisiveis.includes(i.setor));
   const faltaram = lista.filter((i) => i.estado === 'faltou' && setoresVisiveis.includes(i.setor));
+  const briefing = ev.briefing || {};
+  const temBriefing = 'briefing' in ev;
+  const preenchidos = CAMPOS_BRIEFING.filter((c) => briefing[c.id]);
+  const responsavel = (equipe || []).find((p) => p.user_id === ev.responsavel);
 
   return (
     <>
@@ -38,7 +43,8 @@ export default async function EventoPagina({ params }) {
           <h1 className="titulo">{ev.nome}</h1>
           <span className="linha" style={{ gap: 8 }}>
             {ev.tipo ? <span className="pill t-gray">{ev.tipo}</span> : null}
-            <span className="pill t-gray">{fmtPeriodo(ev)}</span>
+            <span className="pill t-gray">{fmtPeriodo(ev)}{ev.data_inicio ? ' · ' + diaSemana(ev.data_inicio) : ''}</span>
+            {ev.horario ? <span className="pill t-gray">{ev.horario}</span> : null}
             {ev.local ? <span className="small muted">{ev.local}</span> : null}
             <span className={'pill t-' + momento.cor}>{momento.nome}</span>
           </span>
@@ -60,12 +66,66 @@ export default async function EventoPagina({ params }) {
                 <div className="campo"><label htmlFor="e-ini">Início</label><input id="e-ini" name="data_inicio" type="date" defaultValue={ev.data_inicio || ''} style={{ colorScheme: 'dark' }} /></div>
                 <div className="campo"><label htmlFor="e-fim">Fim</label><input id="e-fim" name="data_fim" type="date" defaultValue={ev.data_fim || ''} style={{ colorScheme: 'dark' }} /></div>
               </div>
-              <div className="campo"><label htmlFor="e-local">Local</label><input id="e-local" name="local" defaultValue={ev.local || ''} /></div>
+              <div className="form-grid">
+                <div className="campo"><label htmlFor="e-hora">Horário</label><input id="e-hora" name="horario" defaultValue={ev.horario || ''} placeholder="Ex.: 9h às 19h" /></div>
+                <div className="campo"><label htmlFor="e-local">Local</label><input id="e-local" name="local" defaultValue={ev.local || ''} /></div>
+              </div>
               <button type="submit" className="btn">Salvar</button>
             </form>
           </details>
         ) : null}
       </div>
+
+      {temBriefing ? (
+        podeGerir ? (
+          <form action={salvarBriefing} className="card briefing">
+            <input type="hidden" name="id" value={ev.id} />
+            <div className="entre" style={{ flexWrap: 'wrap', gap: 10 }}>
+              <div className="pilha-p">
+                <h2 className="h2">Briefing do evento</h2>
+                <span className="small muted">O que todo o time precisa saber. Todos os setores veem; quem edita é o setor de Eventos.</span>
+              </div>
+              <div className="campo" style={{ minWidth: 220 }}>
+                <label htmlFor="b-resp">Responsável pelo evento</label>
+                <select id="b-resp" name="responsavel" defaultValue={ev.responsavel || ''}>
+                  <option value="">Ninguém definido</option>
+                  {(equipe || []).map((p) => <option key={p.user_id} value={p.user_id}>{p.nome}</option>)}
+                </select>
+              </div>
+            </div>
+            <div className="briefing-grade">
+              {CAMPOS_BRIEFING.map((c) => (
+                <div key={c.id} className="campo">
+                  <label htmlFor={'b-' + c.id}>{c.nome}</label>
+                  <textarea id={'b-' + c.id} name={c.id} rows={c.id === 'programacao' ? 5 : 3} defaultValue={briefing[c.id] || ''} placeholder={c.dica} />
+                </div>
+              ))}
+            </div>
+            <button type="submit" className="btn" style={{ alignSelf: 'flex-start' }}>Salvar briefing</button>
+          </form>
+        ) : (
+          <section className="card briefing">
+            <div className="entre" style={{ flexWrap: 'wrap', gap: 10 }}>
+              <h2 className="h2">Briefing do evento</h2>
+              {responsavel ? <span className="small muted">Responsável: <b style={{ color: 'var(--texto)' }}>{responsavel.nome}</b></span> : null}
+            </div>
+            {preenchidos.length ? (
+              <div className="briefing-grade">
+                {preenchidos.map((c) => (
+                  <div key={c.id} className="pilha-p" style={{ gap: 4 }}>
+                    <span className="small muted">{c.nome}</span>
+                    <span style={{ whiteSpace: 'pre-line', color: 'var(--texto2)' }}>{briefing[c.id]}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <span className="small muted">O setor de Eventos ainda não preencheu o briefing.</span>
+            )}
+          </section>
+        )
+      ) : podeGerir ? (
+        <div className="aviso t-amber">Para usar o briefing do evento, rode o arquivo supabase/eventos-agenda.sql no SQL Editor do Supabase.</div>
+      ) : null}
 
       <div className="grid-kpi">
         <div className="kpi">

@@ -8,7 +8,7 @@ import { createClient as clienteServico } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/server';
 import { SUPABASE_URL } from '@/lib/supabase/config';
 import { getPerfil, podeSetor } from '@/lib/perfil';
-import { CHECKLIST_PADRAO, SETORES_EVENTO } from '@/lib/eventos';
+import { CAMPOS_BRIEFING, CHECKLIST_PADRAO, SETORES_EVENTO } from '@/lib/eventos';
 
 async function exigirEventos() {
   const perfil = await getPerfil();
@@ -35,11 +35,13 @@ export async function criarEvento(formData) {
   const nome = texto(formData, 'nome', 120);
   if (!nome) throw new Error('Dê um nome ao evento.');
   const supabase = createClient();
-  const { data: ev, error } = await supabase
-    .from('eventos')
-    .insert({ nome, tipo: texto(formData, 'tipo', 60), data_inicio: data(formData, 'data_inicio'), data_fim: data(formData, 'data_fim'), local: texto(formData, 'local', 160) })
-    .select('id')
-    .single();
+  const dados = { nome, tipo: texto(formData, 'tipo', 60), data_inicio: data(formData, 'data_inicio'), data_fim: data(formData, 'data_fim'), horario: texto(formData, 'horario', 60), local: texto(formData, 'local', 160) };
+  let { data: ev, error } = await supabase.from('eventos').insert(dados).select('id').single();
+  if (error && /horario/.test(error.message)) {
+    // Ainda não rodou o eventos-agenda.sql: cria sem o horário
+    delete dados.horario;
+    ({ data: ev, error } = await supabase.from('eventos').insert(dados).select('id').single());
+  }
   if (error) throw new Error(error.message);
 
   if (formData.get('checklist') === 'sim') {
@@ -57,11 +59,29 @@ export async function editarEvento(formData) {
   await exigirEventos();
   const id = String(formData.get('id'));
   const supabase = createClient();
-  const { error } = await supabase
-    .from('eventos')
-    .update({ nome: texto(formData, 'nome', 120) || 'Evento', tipo: texto(formData, 'tipo', 60), data_inicio: data(formData, 'data_inicio'), data_fim: data(formData, 'data_fim'), local: texto(formData, 'local', 160) })
-    .eq('id', id);
+  const dados = { nome: texto(formData, 'nome', 120) || 'Evento', tipo: texto(formData, 'tipo', 60), data_inicio: data(formData, 'data_inicio'), data_fim: data(formData, 'data_fim'), horario: texto(formData, 'horario', 60), local: texto(formData, 'local', 160) };
+  let { error } = await supabase.from('eventos').update(dados).eq('id', id);
+  if (error && /horario/.test(error.message)) {
+    delete dados.horario;
+    ({ error } = await supabase.from('eventos').update(dados).eq('id', id));
+  }
   if (error) throw new Error(error.message);
+  atualizar(id);
+}
+
+// Briefing: o que todo mundo precisa saber do evento (objetivo, público, oferta, programação...)
+export async function salvarBriefing(formData) {
+  await exigirEventos();
+  const id = String(formData.get('id'));
+  const briefing = {};
+  for (const c of CAMPOS_BRIEFING) {
+    const v = texto(formData, c.id, 4000);
+    if (v) briefing[c.id] = v;
+  }
+  const responsavel = String(formData.get('responsavel') || '').trim() || null;
+  const supabase = createClient();
+  const { error } = await supabase.from('eventos').update({ briefing, responsavel }).eq('id', id);
+  if (error) throw new Error(/briefing|responsavel/.test(error.message) ? 'Falta rodar o supabase/eventos-agenda.sql no Supabase.' : error.message);
   atualizar(id);
 }
 
