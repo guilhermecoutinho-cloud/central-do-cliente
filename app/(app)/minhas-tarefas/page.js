@@ -2,14 +2,20 @@ import { createClient } from '@/lib/supabase/server';
 import { getPerfil } from '@/lib/perfil';
 import { hojeISO, somarDias } from '@/lib/tarefas';
 import MinhasLista from '@/components/tarefas/MinhasLista';
+import { googleConfigurado } from '@/lib/google';
 
 export default async function MinhasTarefas() {
   const perfil = await getPerfil();
   const hoje = hojeISO();
 
   let tarefas = [];
+  let convidarGoogle = false;
   if (!perfil.semMigracao) {
     const supabase = createClient();
+    if (googleConfigurado()) {
+      const { data: g, error: eg } = await supabase.rpc('minha_conta_google');
+      convidarGoogle = !eg && !(g || []).length;
+    }
     // Abertas + concluídas nos últimos 7 dias
     const { data, error } = await supabase
       .from('tarefas')
@@ -29,6 +35,12 @@ export default async function MinhasTarefas() {
           <h1 className="titulo">Minhas tarefas</h1>
         </div>
       </div>
+      {convidarGoogle ? (
+        <div className="aviso t-gray entre" style={{ flexWrap: 'wrap', gap: 10 }}>
+          <span>Quer ver suas tarefas na Google Agenda? Conecte sua conta e cada tarefa com prazo vira um evento no dia.</span>
+          <a href="/api/google/conectar" className="btn btn-sec" style={{ padding: '8px 14px' }}>Conectar Google Agenda</a>
+        </div>
+      ) : null}
       <MinhasLista tarefas={tarefas} hoje={hoje} />
     </>
   );

@@ -1037,3 +1037,6 @@ details.card > summary.entre { list-style: none; }
   .agenda-nome { white-space: normal; }
   .briefing-grade { grid-template-columns: 1fr; }
 }
+
+.rodape-conta { color: inherit; text-decoration: none; border-radius: 10px; padding: 4px 6px; margin: -4px -6px; transition: background .15s; }
+.rodape-conta:hover, .rodape-conta.ativo { background: rgba(255, 255, 255, .04); }

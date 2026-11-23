@@ -129,10 +129,10 @@ export default function Sidebar({ nome, admin, setores, atrasadas }) {
         })}
 
         <div className="rodape" style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <span className="pilha-p" style={{ gap: 2, flex: 1, minWidth: 0 }}>
+          <Link href="/conta" className={'pilha-p rodape-conta' + (path === '/conta' ? ' ativo' : '')} style={{ gap: 2, flex: 1, minWidth: 0 }} title="Minha conta e Google Agenda">
             <span className="small" style={{ fontWeight: 600 }}>{nome}</span>
-            <span className="small muted">{admin ? 'Administrador' : 'Equipe'}</span>
-          </span>
+            <span className="small muted">{admin ? 'Administrador' : 'Equipe'} · Minha conta</span>
+          </Link>
           <form action={sair}>
             <button type="submit" className="btn-link">Sair</button>
           </form>
