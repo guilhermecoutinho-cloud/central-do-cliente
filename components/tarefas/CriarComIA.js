@@ -99,7 +99,15 @@ export default function CriarComIA({ setor, grupos, equipe, onFechar, onCriadas 
                 <select className="input" value={x.status} onChange={(e) => mudar(x.chave, 'status', e.target.value)} aria-label="Status">
                   {STATUS.map((s) => <option key={s.nome}>{s.nome}</option>)}
                 </select>
-                <input className="input" type="date" value={x.prazo} onChange={(e) => mudar(x.chave, 'prazo', e.target.value)} aria-label="Prazo" style={{ colorScheme: 'dark' }} />
+                <span className="ia-quando">
+                  <input className="input" type="date" value={x.prazo} onChange={(e) => mudar(x.chave, 'prazo', e.target.value)} aria-label="Prazo" style={{ colorScheme: 'dark' }} />
+                  {x.prazo ? (
+                    <span className="ia-horas">
+                      <input className="input" type="time" value={x.hora_inicio || ''} onChange={(e) => mudar(x.chave, 'hora_inicio', e.target.value)} aria-label="Hora de início (opcional)" title="Hora de início (opcional)" style={{ colorScheme: 'dark' }} />
+                      <input className="input" type="time" value={x.hora_fim || ''} onChange={(e) => mudar(x.chave, 'hora_fim', e.target.value)} aria-label="Hora de fim (opcional)" title="Hora de fim (opcional)" style={{ colorScheme: 'dark' }} />
+                    </span>
+                  ) : null}
+                </span>
                 <select className="input" value={x.prioridade} onChange={(e) => mudar(x.chave, 'prioridade', e.target.value)} aria-label="Prioridade">
                   {PRIORIDADES.map((p) => <option key={p.nome}>{p.nome}</option>)}
                 </select>

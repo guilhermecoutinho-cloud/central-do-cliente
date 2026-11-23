@@ -7,7 +7,7 @@ import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { getPerfil, podeSetor } from '@/lib/perfil';
 import { setorPorSlug } from '@/lib/setores';
-import { NOMES_PRIORIDADE, NOMES_STATUS, hojeISO } from '@/lib/tarefas';
+import { NOMES_PRIORIDADE, NOMES_STATUS, ajustarFim, hojeISO, lerHora, lerHorario } from '@/lib/tarefas';
 import { acharPessoa, lerData, lerPrioridade, lerStatus, norm } from '@/lib/conector';
 import { geminiLigado, perguntarGemini } from '@/lib/gemini';
 const DIAS = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
@@ -23,6 +23,7 @@ const ESQUEMA = {
           titulo: { type: 'STRING' },
           grupo: { type: 'STRING' },
           prazo: { type: 'STRING' },
+          horario: { type: 'STRING' },
           prioridade: { type: 'STRING', enum: NOMES_PRIORIDADE },
           status: { type: 'STRING', enum: NOMES_STATUS },
           responsavel: { type: 'STRING' },
@@ -47,6 +48,7 @@ function instrucoes({ setor, hoje, grupos, equipe }) {
     '- Uma tarefa por ação concreta. Não invente tarefas que não estão no texto. No máximo 50.',
     '- Título curto e claro, começando pelo verbo quando fizer sentido. Mantenha nomes de eventos e pessoas como estão.',
     '- prazo: AAAA-MM-DD só se o texto indicar uma data ou dia (converta "sexta", "amanhã", "dia 20"). Se não houver, deixe vazio.',
+    '- horario: só se o texto disser a hora (ex.: "14h às 15h", "às 9h30"). Escreva como "14:00 às 15:00". Sem hora, deixe vazio.',
     '- prioridade: Crítica para urgente ou P0, Alta para P1 ou importante, Baixa para P3 ou sem pressa, senão Média.',
     '- status: Não iniciado, a não ser que o texto diga que já está em andamento, travado ou feito.',
     '- responsavel: só se o texto disser quem faz e a pessoa estiver na equipe; use o nome como está na equipe. Senão, vazio.',
@@ -100,6 +102,10 @@ async function separarTarefas({ setor: slug, texto }) {
       titulo: String(x.titulo || '').trim().slice(0, 300),
       grupo_id: grupo?.id || '',
       prazo: x.prazo ? lerData(x.prazo, hoje) || '' : '',
+      ...(() => {
+        const h = x.horario ? lerHorario(x.horario) : null;
+        return { hora_inicio: h?.inicio || '', hora_fim: h?.fim || '' };
+      })(),
       prioridade: lerPrioridade(x.prioridade) || 'Média',
       status: lerStatus(x.status) || 'Não iniciado',
       responsavel: pessoa?.user_id || '',
@@ -134,6 +140,12 @@ async function gravarLote({ setor: slug, tarefas }) {
       status: NOMES_STATUS.includes(t.status) ? t.status : 'Não iniciado',
       prioridade: NOMES_PRIORIDADE.includes(t.prioridade) ? t.prioridade : 'Média',
       prazo: /^\d{4}-\d{2}-\d{2}$/.test(t.prazo || '') ? t.prazo : null,
+      ...(() => {
+        const ini = lerHora(t.hora_inicio);
+        if (!ini || !/^\d{4}-\d{2}-\d{2}$/.test(t.prazo || '')) return {};
+        const h = ajustarFim(ini, lerHora(t.hora_fim));
+        return { hora_inicio: h.inicio, hora_fim: h.fim };
+      })(),
       responsavel: t.responsavel || null,
       concluida_em: t.status === 'Feito' ? agora : null,
     }))

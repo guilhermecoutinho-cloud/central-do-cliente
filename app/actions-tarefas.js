@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { getPerfil } from '@/lib/perfil';
 import { SLUGS } from '@/lib/setores';
-import { CORES_GRUPO, NOMES_PRIORIDADE, NOMES_STATUS } from '@/lib/tarefas';
+import { CORES_GRUPO, NOMES_PRIORIDADE, NOMES_STATUS, ajustarFim, fmtHorario, lerHora } from '@/lib/tarefas';
 
 function checar(error) {
   if (error) throw new Error(error.message);
@@ -93,7 +93,23 @@ const CAMPOS = {
   grupo_id: (v) => v || null,
 };
 
+// Horário da tarefa (início e fim). valor: { inicio: 'HH:MM', fim: 'HH:MM' } ou vazio para tirar
+async function atualizarHorario({ id, setor, valor }) {
+  const inicio = lerHora(valor?.inicio);
+  const { fim } = ajustarFim(inicio, lerHora(valor?.fim));
+  const supabase = createClient();
+  const { error } = await supabase
+    .from('tarefas')
+    .update({ hora_inicio: inicio, hora_fim: inicio ? fim : null, atualizado_em: new Date().toISOString() })
+    .eq('id', id);
+  if (error && /hora_/.test(error.message)) throw new Error('Falta ativar o horário: rode o arquivo supabase/tarefas-horario.sql no Supabase.');
+  checar(error);
+  await registrar(supabase, id, inicio ? `marcou o horário ${fmtHorario(inicio, fim)}` : 'tirou o horário');
+  revalidarSetor(setor, id);
+}
+
 export async function atualizarTarefa({ id, setor, campo, valor, rotulo }) {
+  if (campo === 'horario') return atualizarHorario({ id, setor, valor });
   const conv = CAMPOS[campo];
   if (!conv) throw new Error('Campo inválido.');
   const v = conv(valor);

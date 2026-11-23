@@ -4,6 +4,7 @@ import { useEffect, useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Escolha from './Escolha';
+import Horario from './Horario';
 import { PRIORIDADES, STATUS, atrasada, corPrioridade, corStatus, fmtPrazo, fmtQuando } from '@/lib/tarefas';
 import { corAvatar, iniciais } from '@/lib/util';
 import {
@@ -54,6 +55,20 @@ export default function TarefaEditor({ tarefa: inicial, subtarefas: subsIniciais
         router.refresh();
       } catch (e) {
         setT((x) => ({ ...x, [campo]: antes }));
+        avisarErro(e);
+      }
+    });
+  }
+
+  function mudarHorario(h) {
+    const antes = { hora_inicio: t.hora_inicio, hora_fim: t.hora_fim };
+    setT((x) => ({ ...x, hora_inicio: h.inicio, hora_fim: h.fim }));
+    iniciar(async () => {
+      try {
+        await atualizarTarefa({ id: t.id, setor, campo: 'horario', valor: h });
+        router.refresh();
+      } catch (e) {
+        setT((x) => ({ ...x, ...antes }));
         avisarErro(e);
       }
     });
@@ -139,6 +154,9 @@ export default function TarefaEditor({ tarefa: inicial, subtarefas: subsIniciais
             value={t.prazo || ''}
             onChange={(e) => mudar('prazo', e.target.value || null, e.target.value ? fmtPrazo(e.target.value) : 'sem prazo')}
           />
+          {'hora_inicio' in t ? (
+            <Horario grande inicio={t.hora_inicio} fim={t.hora_fim} semPrazo={!t.prazo} onSalvar={mudarHorario} />
+          ) : null}
         </div>
         <div className="card-2 pilha-p" style={{ gap: 8 }}>
           <span className="small muted">Prioridade</span>

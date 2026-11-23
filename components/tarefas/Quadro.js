@@ -7,6 +7,7 @@ import SetorAbas from '@/components/SetorAbas';
 import SetorIcone from '@/components/SetorIcone';
 import Escolha from './Escolha';
 import CriarComIA from './CriarComIA';
+import Horario from './Horario';
 import { CORES_GRUPO, PRIORIDADES, STATUS, atrasada, corPrioridade, corStatus, fmtPrazo } from '@/lib/tarefas';
 import { corAvatar, iniciais } from '@/lib/util';
 import { atualizarTarefa, criarGrupo, criarTarefa, excluirGrupo, renomearGrupo } from '@/app/actions-tarefas';
@@ -38,7 +39,7 @@ function CampoNovaTarefa({ onAdicionar }) {
   );
 }
 
-export default function Quadro({ setor, secao = null, titulo = null, grupos, tarefas: iniciais_, equipe, hoje, visaoInicial = 'tabela', iaAtiva = false }) {
+export default function Quadro({ setor, secao = null, titulo = null, grupos, tarefas: iniciais_, equipe, hoje, visaoInicial = 'tabela', iaAtiva = false, temHorario = false }) {
   const router = useRouter();
   const [tarefas, setTarefas] = useState(iniciais_);
   const [visao, setVisao] = useState(visaoInicial);
@@ -77,6 +78,19 @@ export default function Quadro({ setor, secao = null, titulo = null, grupos, tar
         await atualizarTarefa({ id: t.id, setor: setor.slug, campo, valor, rotulo });
       } catch (e) {
         setTarefas((lista) => lista.map((x) => (x.id === t.id ? { ...x, [campo]: antes } : x)));
+        avisarErro(e);
+      }
+    });
+  }
+
+  function mudarHorario(t, h) {
+    const antes = { hora_inicio: t.hora_inicio ?? null, hora_fim: t.hora_fim ?? null };
+    setTarefas((lista) => lista.map((x) => (x.id === t.id ? { ...x, hora_inicio: h.inicio, hora_fim: h.fim } : x)));
+    iniciar(async () => {
+      try {
+        await atualizarTarefa({ id: t.id, setor: setor.slug, campo: 'horario', valor: h });
+      } catch (e) {
+        setTarefas((lista) => lista.map((x) => (x.id === t.id ? { ...x, ...antes } : x)));
         avisarErro(e);
       }
     });
@@ -178,7 +192,7 @@ export default function Quadro({ setor, secao = null, titulo = null, grupos, tar
             onEscolher={(v) => mudar(t, 'status', v, v)}
           />
         </div>
-        <div className="c">
+        <div className="c c-prazo">
           <input
             type="date"
             aria-label="Prazo"
@@ -187,6 +201,9 @@ export default function Quadro({ setor, secao = null, titulo = null, grupos, tar
             onChange={(e) => mudar(t, 'prazo', e.target.value || null, e.target.value ? fmtPrazo(e.target.value) : 'sem prazo')}
             disabled={t.temp}
           />
+          {!t.temp && temHorario ? (
+            <Horario inicio={t.hora_inicio} fim={t.hora_fim} semPrazo={!t.prazo} onSalvar={(h) => mudarHorario(t, h)} />
+          ) : null}
         </div>
         <div className="c pr">
           <Escolha
