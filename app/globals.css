@@ -1066,3 +1066,59 @@ details.card > summary.entre { list-style: none; }
 @media (hover: none) { .c-prazo .horario:not(.definido) { position: static; transform: none; opacity: 1; } }
 .q-linha:has(.horario-painel), .card-2:has(.horario-painel) { position: relative; z-index: 6; }
 .horario-painel .campo input { background: var(--card); }
+
+/* Área do aluno: busca e ficha completa */
+.busca-aluno { display: flex; gap: 10px; max-width: 760px; }
+.busca-aluno input {
+  flex: 1; min-width: 0; padding: 13px 16px; font-size: 15px; border-radius: 12px; color: var(--texto);
+  background: var(--card); border: 1px solid var(--borda2);
+}
+.busca-aluno input:focus { outline: none; border-color: var(--verde); box-shadow: var(--foco); }
+.alunos-grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); gap: 10px; }
+.aluno-cartao {
+  display: flex; gap: 12px; align-items: center; padding: 14px; border-radius: 12px; color: inherit; text-decoration: none;
+  background: var(--card); border: 1px solid var(--borda2); transition: border-color .2s, background .2s;
+}
+.aluno-cartao:hover { border-color: var(--borda-forte); background: var(--card2); }
+.aluno-nome { font-weight: 600; color: var(--texto); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.aluno-mini { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; flex: 0 0 44px; }
+.ficha-topo { display: flex; gap: 22px; align-items: center; flex-wrap: wrap; flex-direction: row; }
+.ficha-topo-cb { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; margin-left: auto; }
+.ficha-topo-cb .valor { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.ficha-foto-caixa { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.ficha-foto {
+  position: relative; width: 112px; height: 112px; border-radius: 50%; padding: 0; overflow: hidden; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; color: var(--muted2);
+  background: var(--card2); border: 1px solid var(--borda2);
+}
+.ficha-foto img { width: 100%; height: 100%; object-fit: cover; }
+.ficha-foto-acao {
+  position: absolute; inset: auto 0 0 0; padding: 6px 0 8px; font-size: 11px; font-weight: 600; color: var(--texto);
+  background: rgba(0, 0, 0, .62); opacity: 0; transition: opacity .15s;
+}
+.ficha-foto:hover .ficha-foto-acao, .ficha-foto:focus-visible .ficha-foto-acao { opacity: 1; }
+.ficha-grade { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.ficha-dados { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 20px; }
+.ficha-dado { display: flex; flex-direction: column; gap: 3px; min-width: 0; color: var(--texto); overflow-wrap: anywhere; }
+.ficha-dado.largo { grid-column: 1 / -1; }
+.ficha-sub { font-size: 12px; font-weight: 600; color: var(--muted); }
+.ficha-cb { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.ficha-cb b { font-size: 18px; font-variant-numeric: tabular-nums; }
+.indicacao { flex-direction: column; align-items: stretch !important; gap: 8px !important; }
+.indicacao-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+.pill-select {
+  padding: 5px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; border: 1px solid transparent; cursor: pointer;
+}
+.ficha-nova-ind > summary { cursor: pointer; color: var(--verde); font-weight: 600; list-style: none; }
+.ficha-nova-ind > summary::-webkit-details-marker { display: none; }
+.calc-cb { display: flex; flex-direction: column; gap: 12px; padding: 14px; border-radius: 12px; background: var(--card2); border: 1px solid var(--borda2); }
+.calc-cb-grade { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.calc-cb .campo > span { font-size: 12px; color: var(--muted); }
+.calc-cb-res { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.calc-cb-res b { font-size: 16px; font-variant-numeric: tabular-nums; }
+@media (max-width: 1000px) { .ficha-grade { grid-template-columns: 1fr; } }
+@media (max-width: 640px) {
+  .ficha-topo-cb { align-items: flex-start; margin-left: 0; }
+  .ficha-dados, .calc-cb-grade { grid-template-columns: 1fr; }
+  .busca-aluno { flex-direction: column; }
+}

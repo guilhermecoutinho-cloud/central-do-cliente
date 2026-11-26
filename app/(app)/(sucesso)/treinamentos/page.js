@@ -6,6 +6,7 @@ import { PRODUTOS } from '@/lib/util';
 import EditarTreinamento from '@/components/EditarTreinamento';
 
 const ABAS = [
+  ['alunos', 'Alunos'],
   ['treinamentos', 'Treinamentos'],
   ['ferramentas', 'Ferramentas'],
   ['conexoes', 'Conexões'],
@@ -16,6 +17,70 @@ const fmtDia = (d) => new Date(d).toLocaleDateString('pt-BR', { timeZone: 'Ameri
 
 function FaltaSql({ arquivo }) {
   return <div className="aviso t-amber">Falta ativar esta parte: rode o arquivo supabase/{arquivo} no SQL Editor do Supabase.</div>;
+}
+
+// Busca do aluno: digita o nome (ou empresa, ou alguém do time dele) e abre a ficha completa
+async function AbaAlunos({ supabase, q }) {
+  const busca = String(q || '').trim().slice(0, 80);
+  const campos = 'id, nome, empresa, produto, status, cidade, estado';
+  let lista = [];
+  let total = 0;
+  if (busca) {
+    const termo = `%${busca.replace(/[%_,()]/g, ' ')}%`;
+    const [{ data: porNome }, { data: porMembro }] = await Promise.all([
+      supabase.from('clientes').select(campos).or(`nome.ilike.${termo},empresa.ilike.${termo},email.ilike.${termo},cpf.ilike.${termo}`).order('nome').limit(60),
+      supabase.from('membros').select('cliente_id, nome').ilike('nome', termo).limit(40),
+    ]);
+    const ids = new Set((porNome || []).map((c) => c.id));
+    const faltam = [...new Set((porMembro || []).map((m) => m.cliente_id))].filter((id) => !ids.has(id));
+    const { data: extras } = faltam.length ? await supabase.from('clientes').select(campos).in('id', faltam) : { data: [] };
+    const membroDe = Object.fromEntries((porMembro || []).map((m) => [m.cliente_id, m.nome]));
+    lista = [...(porNome || []), ...(extras || []).map((c) => ({ ...c, via: membroDe[c.id] }))];
+  } else {
+    const { data, count } = await supabase.from('clientes').select(campos, { count: 'exact' }).neq('status', 'encerrado').order('nome').limit(80);
+    lista = data || [];
+    total = count || 0;
+  }
+  // Foto, se a ficha já estiver ativa
+  const { data: fotos } = lista.length ? await supabase.from('clientes').select('id, foto_url').in('id', lista.map((c) => c.id)) : { data: [] };
+  const fotoDe = Object.fromEntries((fotos || []).map((f) => [f.id, f.foto_url]));
+
+  return (
+    <div className="pilha" style={{ gap: 14 }}>
+      <form className="busca-aluno" role="search">
+        <input type="hidden" name="aba" value="alunos" />
+        <input name="q" defaultValue={busca} placeholder="Pesquise o nome do aluno, da empresa, o e-mail ou o CPF" aria-label="Pesquisar aluno" autoFocus />
+        <button type="submit" className="btn">Buscar</button>
+      </form>
+      <span className="small muted">
+        {busca
+          ? `${lista.length} ${lista.length === 1 ? 'resultado' : 'resultados'} para “${busca}”.`
+          : `${total} alunos ativos e em onboarding${total > lista.length ? ` (mostrando os ${lista.length} primeiros; pesquise para achar os outros)` : ''}. Clique para abrir a ficha completa.`}
+      </span>
+      {lista.length ? (
+        <div className="alunos-grade">
+          {lista.map((c) => (
+            <Link key={c.id} href={`/alunos/${c.id}`} className="aluno-cartao">
+              {fotoDe[c.id] ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={fotoDe[c.id]} alt="" className="aluno-mini" />
+              ) : null}
+              <span className="pilha-p" style={{ gap: 2, minWidth: 0 }}>
+                <span className="aluno-nome">{c.nome}</span>
+                <span className="small muted">{c.empresa}</span>
+                <span className="small" style={{ color: 'var(--texto3)' }}>
+                  {[c.produto, [c.cidade, c.estado].filter(Boolean).join('/'), c.status === 'encerrado' ? 'encerrado' : null].filter(Boolean).join(' · ')}
+                  {c.via ? ` · time: ${c.via}` : ''}
+                </span>
+              </span>
+            </Link>
+          ))}
+        </div>
+      ) : busca ? (
+        <div className="vazio">Nenhum aluno encontrado.</div>
+      ) : null}
+    </div>
+  );
 }
 
 async function AbaTreinamentos({ supabase }) {
@@ -246,7 +311,7 @@ async function AbaNps({ supabase }) {
 }
 
 export default async function AreaDoAlunoTime({ searchParams }) {
-  const aba = ABAS.some(([k]) => k === searchParams?.aba) ? searchParams.aba : 'treinamentos';
+  const aba = ABAS.some(([k]) => k === searchParams?.aba) ? searchParams.aba : 'alunos';
   const supabase = createClient();
   return (
     <>
@@ -260,11 +325,12 @@ export default async function AreaDoAlunoTime({ searchParams }) {
         <Link href="/aluno" className="btn btn-sec">Ver como aluno</Link>
         <div className="segmentos" role="group" aria-label="Partes da área do aluno">
           {ABAS.map(([k, nome]) => (
-            <Link key={k} href={k === 'treinamentos' ? '/treinamentos' : `/treinamentos?aba=${k}`} className={aba === k ? 'ativo' : ''}>{nome}</Link>
+            <Link key={k} href={k === 'alunos' ? '/treinamentos' : `/treinamentos?aba=${k}`} className={aba === k ? 'ativo' : ''}>{nome}</Link>
           ))}
         </div>
         </div>
       </div>
+      {aba === 'alunos' ? <AbaAlunos supabase={supabase} q={searchParams?.q} /> : null}
       {aba === 'ferramentas' ? <AbaFerramentas supabase={supabase} /> : null}
       {aba === 'conexoes' ? <AbaConexoes supabase={supabase} /> : null}
       {aba === 'nps' ? <AbaNps supabase={supabase} /> : null}
